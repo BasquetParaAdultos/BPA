@@ -9,8 +9,21 @@ function Navbar() {
   return (
     <nav className='bg-zinc-700 my-3 py-5 px-4 md:px-10 rounded-lg text-white'>
       <div className='flex justify-between items-center'>
-        <Link to={isAuthenticated ? '/tasks' : '/'}>
-          <h1 className='text-2xl font-bold'>Basquet para adultos</h1>
+        <Link
+          to={isAuthenticated ? '/tasks' : '/'}
+          className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity"
+        >
+          {/* Logo - Tamaño aumentado en todos los breakpoints */}
+          <img
+            src="/images/home/logoBPA.png"
+            alt="Logo BPA"
+            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain"
+          />
+
+          {/* Texto - Tamaño ajustado proporcionalmente */}
+          <h1 className='text-2xl md:text-3xl lg:text-4xl font-bold whitespace-nowrap'>
+            Básquet para adultos
+          </h1>
         </Link>
 
         {/* Menú Hamburguesa para móvil */}

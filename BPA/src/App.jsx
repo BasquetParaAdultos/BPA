@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TaskProvider } from './context/TaskContext'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
 import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
@@ -46,6 +47,7 @@ function App() {
                 <Route path="/admin/classes" element={<AdminClassesPage />} />
               </Route>
             </Routes>
+            <Footer/>
           </main>
         </BrowserRouter>
       </TaskProvider>
