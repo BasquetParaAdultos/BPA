@@ -1,7 +1,7 @@
+// middlewares/isAdmin.js
 export const isAdmin = (req, res, next) => {
-    if (req.user?.role === 'admin') {
-        next();
-    } else {
-        res.status(403).json({ message: 'Acceso denegado' });
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Acceso restringido a administradores' });
     }
+    next();
 };

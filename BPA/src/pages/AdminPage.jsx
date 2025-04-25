@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 function AdminPage() {
     const [users, setUsers] = useState([]);
@@ -16,7 +17,7 @@ function AdminPage() {
                 const res = await axios.get('http://localhost:3001/api/admin/users', {
                     withCredentials: true
                 });
-                setUsers(res.data); 
+                setUsers(res.data);
             } catch (err) {
                 if (err.response?.status === 403) {
                     setError("Acceso denegado: no tienes permisos de administrador");
@@ -39,7 +40,7 @@ function AdminPage() {
     return (
         <div className="p-4 min-h-screen bg-gray-100">
             <h1 className="text-2xl font-bold mb-6 text-gray-800">Usuarios Registrados</h1>
-            
+
             {loading ? (
                 <div className="text-center py-4">
                     <p className="text-gray-600">Cargando usuarios...</p>
@@ -63,7 +64,14 @@ function AdminPage() {
                         <tbody className="divide-y divide-gray-200">
                             {users.map(user => (
                                 <tr key={user._id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.username}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <Link
+                                            to={`/profile/${user._id}`}
+                                            className="text-blue-600 hover:text-blue-800"
+                                        >
+                                            {user.username}
+                                        </Link>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {formatDate(user.createdAt)}

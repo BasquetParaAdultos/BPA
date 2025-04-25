@@ -142,22 +142,38 @@ export const verifyToken = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { phone, full_name, description, profile_picture } = req.body;
+        console.log('Datos recibidos:', req.body);
+        
+        // Convertir campos especiales
+        const updateData = {
+            ...req.body,
+            birth_date: req.body.birth_date ? new Date(req.body.birth_date) : null,
+            chronic_diseases: req.body.chronic_diseases === 'true' || req.body.chronic_diseases === true
+        };
 
         const updatedUser = await User.findByIdAndUpdate(
-            req.user.id,
-            {
-                phone,
-                full_name,
-                description,
-                profile_picture
-            },
-            { new: true, select: '-password' }
-        );
+            req.user._id,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select('-password');
 
         res.json(updatedUser);
     } catch (error) {
-        console.error("Error al actualizar perfil:", error);
-        res.status(500).json({ message: "Error al actualizar el perfil" });
+        console.error('Error de actualización:', error);
+        res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+};
+
+export const getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.userId)
+                            .select('-password -subscription');
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener usuario' });
     }
 };

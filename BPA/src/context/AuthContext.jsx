@@ -55,17 +55,26 @@ export const AuthProvider = ({ children }) => {
     const refreshUser = async () => {
       try {
         const res = await axios.get('http://localhost:3001/api/profile', {
-          withCredentials: true, // <- ¡Añade esto para enviar cookies!
+          withCredentials: true,
+          
         });
         
         setUser(prev => ({
           ...prev,
-          ...res.data // Combina los datos antiguos con los nuevos
-        }));
+          ...res.data,
+          // Actualizar campos anidados si existen
+          subscription: {
+              ...prev?.subscription,
+              ...res.data.subscription
+          }
+      }));
         
       } catch (error) {
-        console.error("Error al actualizar usuario:", error);
-      }
+        console.error("Error al actualizar:", {
+          message: error.message,
+          serverResponse: error.response?.data // ✅ Nombre correcto
+      });
+  }
     };
 
     useEffect(() => {

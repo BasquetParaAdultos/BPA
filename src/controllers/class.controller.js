@@ -1,13 +1,44 @@
 import Class from '../models/class.model.js';
+import User from '../models/user.model.js'
 
 export const getClasses = async (req, res) => {
   try {
-    const classes = await Class.find()
+    const userId = req.query.userId;
+    let query = {};
+
+    if (userId) {
+      const user = await User.findById(userId);
+      
+      if (user?.subscription?.active) {
+        query = {
+          schedule: { $in: user.subscription.selectedSchedules },
+          date: { $gte: new Date() } // Solo clases futuras
+        };
+      } else {
+        return res.status(403).json([]); // Usuario sin suscripción
+      }
+    }
+
+    const classes = await Class.find(query)
       .sort({ date: 1 })
       .populate('attendees.user', 'username email');
-    res.status(200).json(classes);;
+      
+    res.status(200).json(classes);
   } catch (error) {
     res.status(500).json([]);
+  }
+};
+
+export const updateSelectedSchedules = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { selectedSchedules: req.body.schedules } },
+      { new: true }
+    );
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

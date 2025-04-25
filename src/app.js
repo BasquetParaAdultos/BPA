@@ -21,7 +21,12 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE']
 }))
 app.use(morgan('dev'))
-app.use(express.json())
+app.use(express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+    type: '*/*' // ← Acepta cualquier Content-Type
+  }));
 app.use(cookieParser())
 
 

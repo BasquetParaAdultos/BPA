@@ -44,8 +44,8 @@ function HomePage() {
                         <a
                             href="#contactUs"
                             className="inline-block mt-6 px-8 py-3 md:px-10 md:py-4
-                bg-[#c8a876] text-white font-bold rounded-full 
-                hover:bg-[#c09858] transform hover:scale-105 
+                bg-[#EF9659] text-white font-bold rounded-full 
+                hover:bg-[#EF9659] transform hover:scale-105 
                 transition-all duration-300 shadow-lg
                 border-2
                 [text-shadow:_1px_1px_0_#000]">
@@ -295,7 +295,7 @@ function HomePage() {
                                         </p>
                                         <a className="flex m-1" href="tel:+919823331842">
                                             <div className="flex-shrink-0">
-                                                <div className="flex items-center justify-between h-10 w-30 rounded-md bg-indigo-500 text-white p-2">
+                                                <div className="flex items-center justify-between h-10 w-30 rounded-md bg-[#EF9659] text-white p-2">
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         fill="none"
@@ -352,7 +352,7 @@ function HomePage() {
                                         </p>
                                         <a className="flex m-1" href="tel:+919823331842">
                                             <div className="flex-shrink-0">
-                                                <div className="flex items-center justify-between h-10 w-30 rounded-md bg-indigo-500 text-white p-2">
+                                                <div className="flex items-center justify-between h-10 w-30 rounded-md bg-[#EF9659] text-white p-2">
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         fill="none"
@@ -411,7 +411,7 @@ function HomePage() {
                                         </p>
                                         <a className="flex m-1" href="tel:+919823331842">
                                             <div className="flex-shrink-0">
-                                                <div className="flex items-center justify-between h-10 w-30 rounded-md bg-indigo-500 text-white p-2">
+                                                <div className="flex items-center justify-between h-10 w-30 rounded-md bg-[#EF9659] text-white p-2">
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         fill="none"

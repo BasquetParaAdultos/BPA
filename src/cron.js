@@ -6,45 +6,61 @@ import mongoose from 'mongoose';
 const createWeeklyClasses = async () => {
   try {
     const schedules = [
-      "Lunes 21hs",
-      "Martes 21hs",
-      "Martes 22hs",
-      "Jueves 20hs",
-      "Jueves 21hs",
-      "Viernes 21hs"
+      "Lunes 7hs en Meridiano V°",
+      "Lunes 21hs en El Bosque",
+      "Martes 21hs en El Bosque",
+      "Martes 22hs en El Bosque",
+      "Miercoles 7hs en Meridiano V°",
+      "Jueves 19hs en Estación Norte (Femenino)",
+      "Jueves 20hs en Estación Norte (Mixto)",
+      "Viernes 7hs en Meridiano V°",
+      "Viernes 21hs en El Bosque",
+      "Sabado 9hs en El Bosque",
+      "Sabado 10hs en El Bosque",
+      "Sabado 11hs en El Bosque"
     ];
 
     const today = new Date();
-    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // +7 días
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7)); // Próximo lunes
+    nextMonday.setHours(0, 0, 0, 0); // Resetear hora
 
     for (const schedule of schedules) {
-      const [day, time] = schedule.split(' ');
+      const [day, time, location] = schedule.split(' ');
       const hour = parseInt(time.replace('hs', ''));
 
-      // Calcular fecha para cada horario
-      const classDate = new Date(nextWeek);
+      const classDate = new Date(nextMonday);
+      // Ajustar día según el horario
+      const dayOffset = {
+        Lunes: 0,
+        Martes: 1,
+        Miercoles: 2,
+        Jueves: 3,
+        Viernes: 4,
+        Sabado: 5
+      }[day];
+
+      classDate.setDate(nextMonday.getDate() + dayOffset);
       classDate.setHours(hour, 0, 0, 0);
 
-      // Ajustar al día correspondiente
-      const dayMap = {
-        Lunes: 1, Martes: 2, Jueves: 4, Viernes: 5
-      };
-      classDate.setDate(nextWeek.getDate() + (dayMap[day] - nextWeek.getDay()));
-
-      // Verificar si ya existe
-      const existingClass = await Class.findOne({ date: classDate, schedule });
-      if (!existingClass) {
-        await Class.create({
-          date: classDate,
-          schedule,
-          attendees: []
-        });
+      try {
+        await Class.findOneAndUpdate(
+          { date: classDate, schedule },
+          { $setOnInsert: { attendees: [] } },
+          {
+            upsert: true,
+            new: true,
+            useFindAndModify: false
+          }
+        );
+      } catch (error) {
+        console.error(`Error procesando ${schedule}:`, error.message);
       }
     }
 
-    console.log('✅ Clases semanales creadas automáticamente');
+    console.log('✅ Clases actualizadas correctamente');
   } catch (error) {
-    console.error('❌ Error creando clases:', error);
+    console.error('❌ Error general:', error);
   }
 };
 

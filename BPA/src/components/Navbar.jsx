@@ -10,7 +10,7 @@ function Navbar() {
     <nav className='bg-zinc-700 my-3 py-5 px-4 md:px-10 rounded-lg text-white'>
       <div className='flex justify-between items-center'>
         <Link
-          to={isAuthenticated ? '/tasks' : '/'}
+          to='/'
           className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity"
         >
           {/* Logo - Tamaño aumentado en todos los breakpoints */}
@@ -59,30 +59,36 @@ function Navbar() {
           <>
             <Link
               to="/admin"
-              className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+              className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
             >
               Panel Admin
             </Link>
             <Link
               to="/admin/classes"
-              className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+              className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
             >
               Clases
             </Link>
           </>
         )}
-        {user?.role !== 'admin' && user?.payment_status === 'paid' && (
+        {user?.role !== 'admin' && user?.subscription?.active && (
           <Link
             to='/classes'
-            className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+            className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
             onClick={() => setIsOpen(false)}
           >
             Añadir asistencia
           </Link>
         )}
         <Link
+          to='/tasks'
+          className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
+        >
+          Ir al Inicio
+        </Link>
+        <Link
           to='/profile'
-          className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
         >
           Ir al perfil
         </Link>
@@ -91,7 +97,7 @@ function Navbar() {
             logout();
             setIsOpen(false);
           }}
-          className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
         >
           Cerrar sesión
         </button>
@@ -100,13 +106,13 @@ function Navbar() {
       <>
         <Link
           to='/login'
-          className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
         >
           Iniciar Sesión
         </Link>
         <Link
           to='/register'
-          className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
         >
           Registrarse
         </Link>
@@ -122,24 +128,24 @@ function Navbar() {
           <>
             <Link
               to="/admin"
-              className='block px-4 py-2 bg-indigo-500 rounded-sm hover:bg-indigo-600 transition-colors'
+              className='block px-4 py-2 bg-[#EF9659] rounded-sm hover:bg-[#D4874F] transition-colors'
               onClick={() => setIsOpen(false)}
             >
               Panel Admin
             </Link>
             <Link
               to="/admin/classes"
-              className='block px-4 py-2 bg-indigo-500 rounded-sm hover:bg-indigo-600 transition-colors'
+              className='block px-4 py-2 bg-[#EF9659] rounded-sm hover:bg-[#D4874F] transition-colors'
               onClick={() => setIsOpen(false)}
             >
               Clases
             </Link>
           </>
         )}
-        {user?.role !== 'admin' && user?.payment_status === 'paid' && (
+        {user?.role !== 'admin' && user?.subscription?.active && (
           <Link
             to='/classes'
-            className='bg-indigo-500 px-4 py-2 rounded-sm hover:bg-indigo-600 transition-colors'
+            className='bg-[#EF9659] px-4 py-2 rounded-sm hover:bg-[#D4874F] transition-colors'
             onClick={() => setIsOpen(false)}
           >
             Añadir asistencia
@@ -147,7 +153,7 @@ function Navbar() {
         )}
         <Link
           to='/profile'
-          className='block px-4 py-2 bg-indigo-500 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='block px-4 py-2 bg-[#EF9659] rounded-sm hover:bg-[#D4874F] transition-colors'
           onClick={() => setIsOpen(false)}
         >
           Ir al perfil
@@ -157,7 +163,7 @@ function Navbar() {
             logout();
             setIsOpen(false);
           }}
-          className='w-full text-left px-4 py-2 bg-indigo-500 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='w-full text-left px-4 py-2 bg-[#EF9659] rounded-sm hover:bg-[#D4874F] transition-colors'
         >
           Cerrar sesión
         </button>
@@ -166,14 +172,14 @@ function Navbar() {
       <div className='flex flex-col space-y-2'>
         <Link
           to='/login'
-          className='block px-4 py-2 bg-indigo-500 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='block px-4 py-2 bg-[#EF9659] rounded-sm hover:bg-[#D4874F] transition-colors'
           onClick={() => setIsOpen(false)}
         >
           Iniciar Sesión
         </Link>
         <Link
           to='/register'
-          className='block px-4 py-2 bg-indigo-500 rounded-sm hover:bg-indigo-600 transition-colors'
+          className='block px-4 py-2 bg-[#EF9659] rounded-sm hover:bg-[#D4874F] transition-colors'
           onClick={() => setIsOpen(false)}
         >
           Registrarse
