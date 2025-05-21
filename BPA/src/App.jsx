@@ -14,6 +14,7 @@ import AdminPage from './pages/AdminPage'
 import ClassesPage from './pages/ClassesPage'
 import AdminClassesPage from './pages/AdminClassesPage';
 import PaymentStatus from './pages/PaymentStatus';
+import ActiveSubscriptionsTable from './components/ActiveSubscriptionsTable';
 
 import ProtectedRoute from './ProtectedRoute'
 import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
@@ -46,8 +47,8 @@ function App() {
               <Route element={<ProtectedAdminRoute />}>
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/admin/classes" element={<AdminClassesPage />} />
-                {/* Nueva ruta para ver perfiles de otros usuarios */}
-                <Route path="/profile/:userId" element={<ProfilePage />} />
+                <Route path="/admin/active-subscriptions" element={<ActiveSubscriptionsTable />} />
+                <Route path="/admin/user/:userId" element={<ProfilePage />} />
               </Route>
             </Routes>
           </main>

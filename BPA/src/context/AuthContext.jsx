@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useCallback } from "react";
 import { registerRequest, loginRequest, verityTokenRequest } from '../api/auth'
 import axios from 'axios';
 import Cookies from "js-cookie";
@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenicated] = useState(false)
     const [errors, setErrors] = useState([])
     const [loading, setLoading] = useState(true)
+    const [initialLoading, setInitialLoading] = useState(true);
 
     const signup = async (user) => {
         try {
@@ -52,30 +53,17 @@ export const AuthProvider = ({ children }) => {
         setUser(null)
     }
 
-    const refreshUser = async () => {
-      try {
-        const res = await axios.get('http://localhost:3001/api/profile', {
-          withCredentials: true,
-          
-        });
-        
-        setUser(prev => ({
-          ...prev,
-          ...res.data,
-          // Actualizar campos anidados si existen
-          subscription: {
-              ...prev?.subscription,
-              ...res.data.subscription
-          }
-      }));
-        
-      } catch (error) {
-        console.error("Error al actualizar:", {
-          message: error.message,
-          serverResponse: error.response?.data // ✅ Nombre correcto
-      });
-  }
-    };
+    const refreshUser = useCallback(async () => {
+        try {
+            const res = await axios.get('http://localhost:3001/api/profile', {
+                withCredentials: true,
+                headers: { 'Cache-Control': 'no-store' }
+            });
+            setUser(res.data);
+        } catch (error) {
+            console.error("Error actualizando usuario:", error.response?.data);
+        }
+    }, []);
 
     useEffect(() => {
         if (errors.length > 0) {
@@ -88,42 +76,45 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         async function checkLogin() {
-          try {
-            const res = await verityTokenRequest(); // Sin parámetros
-            if (!res.data) {
-              setIsAuthenicated(false);
-              setLoading(false);
-              return;
+            try {
+                const res = await verityTokenRequest(); // Sin parámetros
+                if (!res.data) {
+                    setIsAuthenicated(false);
+                    setLoading(false);
+                    return;
+                }
+                setUser({
+                    ...res.data,
+                    id: res.data.id
+
+                });
+                setIsAuthenicated(true);
+                setLoading(false);
+            } catch (error) {
+                setIsAuthenicated(false);
+                setUser(null);
+                setLoading(false);
+            } finally {
+                setInitialLoading(false); // ← Actualiza aquí
             }
-            setUser({
-              ...res.data,
-              id: res.data.id
-                
-            }); 
-            setIsAuthenicated(true);
-            setLoading(false);
-          } catch (error) {
-            setIsAuthenicated(false);
-            setUser(null);
-            setLoading(false);
-          }
         }
         checkLogin();
-      }, []);
+    }, []);
 
-return (
-    <AuthContext.Provider
-        value={{
-            signup,
-            signin,
-            logout,
-            refreshUser,
-            loading, 
-            user,
-            isAuthenticated,
-            errors
-        }}>
-        {children}
-    </AuthContext.Provider>
-)
+    return (
+        <AuthContext.Provider
+            value={{
+                signup,
+                signin,
+                logout,
+                refreshUser,
+                initialLoading,
+                loading,
+                user,
+                isAuthenticated,
+                errors
+            }}>
+            {children}
+        </AuthContext.Provider>
+    )
 }

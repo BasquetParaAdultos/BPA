@@ -4,15 +4,20 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 function ProtectedRoute() {
     const { loading, isAuthenticated, user } = useAuth();
-    const location = useLocation(); // Obtener la ubicación actual
-    const currentPath = location.pathname; // Extraer el path de la URL
+    const location = useLocation();
+    const currentPath = location.pathname;
 
     if (loading) return <h1>Cargando...</h1>;
     if (!loading && !isAuthenticated) return <Navigate to='/login' replace />;
     
-    // Verificar pago solo para la ruta /classes
-    if (currentPath === '/classes' && user?.payment_status !== 'paid') {
-        return <Navigate to="/tasks" replace />;
+    // Nueva verificación de suscripción
+    if (currentPath === '/classes') {
+        const isSubscriptionValid = user?.subscription?.active && 
+                                  new Date(user.subscription.expiresAt) > new Date();
+        
+        if (!isSubscriptionValid) {
+            return <Navigate to="/tasks" replace />;
+        }
     }
 
     return <Outlet />;

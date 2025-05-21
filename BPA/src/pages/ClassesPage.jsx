@@ -7,19 +7,26 @@ function ClassesPage() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+
+  // Función para verificar validez de la suscripción
+  const isSubscriptionValid = () => {
+    return user?.subscription?.active &&
+      new Date(user.subscription.expiresAt) > new Date();
+  };
+
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        if (!user?.subscription?.active) {
+        if (!isSubscriptionValid()) {
           setClasses([]);
           return;
         }
-        
+
         const res = await axios.get('/api/classes', {
           params: { userId: user.id },
           withCredentials: true
         });
-        
+
         setClasses(res.data);
       } catch (error) {
         console.error("Error:", error);
@@ -28,7 +35,7 @@ function ClassesPage() {
         setLoading(false);
       }
     };
-    
+
     fetchClasses();
   }, [user]);
 
@@ -39,11 +46,11 @@ function ClassesPage() {
         { attended },
         { withCredentials: true }
       );
-      
-      setClasses(prev => prev.map(c => 
-        c._id === classId ? { 
-          ...c, 
-          attendees: res.data.attendees 
+
+      setClasses(prev => prev.map(c =>
+        c._id === classId ? {
+          ...c,
+          attendees: res.data.attendees
         } : c
       ));
     } catch (error) {
@@ -53,12 +60,20 @@ function ClassesPage() {
 
   if (loading) return <div className="p-4">Cargando...</div>;
 
-  if (!user?.subscription?.active) {
+  if (!isSubscriptionValid()) {
     return (
-      <div className="p-4 text-center">
+      <div className="p-4 text-center space-y-4">
         <h2 className="text-xl font-bold text-red-600">
-          Necesitas una suscripción activa para ver las clases
+          {user?.subscription?.active
+            ? "Tu suscripción ha expirado"
+            : "Necesitas una suscripción activa para ver las clases"}
         </h2>
+
+        {user?.subscription?.expiresAt && (
+          <p className="text-gray-600">
+            Fecha de expiración: {new Date(user.subscription.expiresAt).toLocaleDateString('es-AR')}
+          </p>
+        )}
       </div>
     );
   }
@@ -66,10 +81,13 @@ function ClassesPage() {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Tus Clases Programadas</h1>
-      
-      <div className="mb-4 bg-blue-100 p-3 rounded-lg">
+
+      <div className="mb-4 bg-blue-100 p-3 rounded-lg flex justify-between items-center">
         <p className="text-blue-800">
-          Clases disponibles este mes: {user.subscription.classesAllowed}
+          Clases disponibles: {user.subscription.classesAllowed}
+        </p>
+        <p className="text-blue-800">
+          Vence: {new Date(user.subscription.expiresAt).toLocaleDateString('es-AR')}
         </p>
       </div>
 
@@ -80,7 +98,7 @@ function ClassesPage() {
           </div>
         ) : (
           classes.map(cls => {
-            const userAttendance = cls.attendees.find(a => 
+            const userAttendance = cls.attendees.find(a =>
               a.user?._id === user.id
             );
 
@@ -93,25 +111,29 @@ function ClassesPage() {
                     month: 'long'
                   })} - {cls.schedule}
                 </h3>
-                
+
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => handleAttendance(cls._id, true)}
-                    className={`flex-1 py-2 rounded transition-all ${
-                      userAttendance?.attended === true
+                    disabled={new Date(cls.date) > new Date()}
+                    className={`flex-1 py-2 rounded transition-all ${userAttendance?.attended === true
                         ? 'bg-green-500 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300'
-                    }`}
+                        : new Date(cls.date) > new Date()
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-gray-200 hover:bg-gray-300'
+                      }`}
                   >
                     Asistiré
                   </button>
                   <button
                     onClick={() => handleAttendance(cls._id, false)}
-                    className={`flex-1 py-2 rounded transition-all ${
-                      userAttendance?.attended === false
+                    disabled={new Date(cls.date) > new Date()}
+                    className={`flex-1 py-2 rounded transition-all ${userAttendance?.attended === false
                         ? 'bg-red-500 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300'
-                    }`}
+                        : new Date(cls.date) > new Date()
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-gray-200 hover:bg-gray-300'
+                      }`}
                   >
                     No asistiré
                   </button>
