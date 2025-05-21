@@ -5,12 +5,6 @@ const classSchema = new mongoose.Schema({
     type: Date,
     required: true,
     index: true,
-    validate: {
-      validator: function (value) {
-        return value > new Date(); // Solo fechas futuras
-      },
-      message: 'La fecha debe ser futura'
-    }
   },
   schedule: {
     type: String,
@@ -51,14 +45,10 @@ const classSchema = new mongoose.Schema({
 });
 
 // Índice compuesto para búsquedas rápidas
-classSchema.index({
-  date: 1,
-  schedule: 1,
-  "attendees.user": 1
-}, {
-  unique: true,
-  name: 'unique_attendance'
-});
+classSchema.index(
+  { date: 1, schedule: 1 },
+  { unique: true, name: 'unique_class_schedule' }
+);
 
 
 export default mongoose.model("Class", classSchema);

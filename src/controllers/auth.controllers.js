@@ -42,47 +42,57 @@ export const register = async (req, res) => {
 }
 
 export const login = async (req, res) => {
-    const { email, password } = req.body
+    const { email, password } = req.body;
 
     try {
+        const userFound = await User.findOne({ email });
+        if (!userFound) return res.status(400).json({ message: 'Usuario no encontrado' });
 
-        const userFound = await User.findOne({ email })
-        if (!userFound) return res.status(400).json({ message: 'Usuario no encontrado' })
+        const isMatch = await bcrypt.compare(password, userFound.password);
+        if (!isMatch) return res.status(400).json({ message: 'Contraseña incorrecta' });
 
-        const isMatch = await bcrypt.compare(password, userFound.password)
-        if (!isMatch) return res.status(400).json({ message: 'Contraseña incorrecta' })
+        // Generar token con datos actualizados
+        const tokenPayload = {
+            id: userFound._id,
+            role: userFound.role,
+            subscriptionActive: userFound.subscription.active // Agregar estado de suscripción al payload
+        };
 
-        // Genera el token con el campo 'role'
         const token = jwt.sign(
-            {
-                id: userFound._id,
-                role: userFound.role
-            },
+            tokenPayload,
             process.env.TOKEN_SECRET,
             { expiresIn: "1h" }
         );
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false, // Cambia a true en producción (HTTPS)
+            secure: false,
             sameSite: "lax",
             maxAge: 3600000,
-        })
+        });
+
+        // Respuesta actualizada con nueva estructura de suscripción
         res.json({
             id: userFound._id,
             username: userFound.username,
             email: userFound.email,
             role: userFound.role,
-            payment_status: userFound.payment_status, // <- ¡Campo crítico!
-            subscription_date: userFound.subscription_date,
-            expiration_date: userFound.expiration_date,
             phone: userFound.phone,
             full_name: userFound.full_name,
             description: userFound.description,
-            profile_picture: userFound.profile_picture
-        })
+            profile_picture: userFound.profile_picture,
+            subscription: {
+                active: userFound.subscription.active,
+                classesAllowed: userFound.subscription.classesAllowed,
+                selectedSchedules: userFound.subscription.selectedSchedules,
+                expiresAt: userFound.subscription.expiresAt,
+                lastPayment: userFound.subscription.lastPayment
+            }
+        });
+
     } catch (error) {
-        console.log(error)
+        console.error("Error en login:", error);
+        res.status(500).json({ message: 'Error interno del servidor' });
     }
 };
 
@@ -128,10 +138,29 @@ export const verifyToken = async (req, res) => {
 
             if (!userFound) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-            res.json({
+            // Asegurar que la suscripción siempre tenga una estructura válida
+            const safeSubscription = userFound.subscription || {
+                active: false,
+                classesAllowed: 0,
+                selectedSchedules: [],
+                expiresAt: null,
+                lastPayment: null
+            };
+
+            // Estructura de respuesta actualizada
+            const response = {
                 ...userFound,
-                id: userFound._id
-            });
+                id: userFound._id,
+                subscription: {
+                    active: safeSubscription.active,
+                    classesAllowed: safeSubscription.classesAllowed,
+                    selectedSchedules: safeSubscription.selectedSchedules || [],
+                    expiresAt: safeSubscription.expiresAt,
+                    lastPayment: safeSubscription.lastPayment
+                }
+            };
+
+            res.json(response);
 
         } catch (error) {
             console.error("Error en verifyToken:", error);
@@ -167,13 +196,3 @@ export const updateProfile = async (req, res) => {
     }
 };
 
-export const getUserById = async (req, res) => {
-    try {
-        const user = await User.findById(req.params.userId)
-                            .select('-password -subscription');
-        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener usuario' });
-    }
-};
