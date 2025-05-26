@@ -1,38 +1,90 @@
 import Class from '../models/class.model.js';
 import User from '../models/user.model.js'
+import { horariosbpa } from "../config/schedules.js";
+
 
 export const getClasses = async (req, res) => {
   try {
-    const userId = req.query.userId;
-    let query = {};
+    const { userId, page = 1, limit = 12 } = req.query;
+    
+    if (req.user.isAdmin) {
+      const currentDate = new Date();
+      
+      // 1. Calcular semana actual (DOMINGO a SÁBADO)
+      const getCurrentWeekRange = () => {
+        const start = new Date(currentDate);
+        start.setDate(currentDate.getDate() - currentDate.getDay()); // Domingo
+        start.setHours(0, 0, 0, 0);
+        
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6); // Sábado
+        end.setHours(23, 59, 59, 999);
+        
+        return { start, end };
+      };
 
+      // 2. Calcular semana objetivo según paginación
+      const { start: currentWeekStart, end: currentWeekEnd } = getCurrentWeekRange();
+      const weeksAgo = (parseInt(page) - 1);
+      const targetWeekStart = new Date(currentWeekStart);
+      targetWeekStart.setDate(currentWeekStart.getDate() - (7 * weeksAgo));
+      
+      const targetWeekEnd = new Date(targetWeekStart);
+      targetWeekEnd.setDate(targetWeekStart.getDate() + 6);
+      targetWeekEnd.setHours(23, 59, 59, 999);
+
+      // 3. Obtener SOLO clases pasadas o de la semana en curso
+      const classes = await Class.find({
+        date: { 
+          $gte: targetWeekStart,
+          $lte: Math.min(targetWeekEnd, currentWeekEnd) // No incluir futuros
+        }
+      }).populate('attendees.user', 'username email');
+
+      // 4. Calcular total de páginas REALES (solo hasta semana actual)
+      const earliestClass = await Class.findOne().sort({ date: 1 });
+      const totalWeeks = earliestClass 
+        ? Math.ceil(
+            (currentWeekStart - earliestClass.date) / 
+            (7 * 24 * 60 * 60 * 1000)
+          ) + 1
+        : 1;
+
+      // 5. Ordenar clases según horariosbpa
+      const scheduleOrder = horariosbpa.reduce((acc, item, index) => 
+        ({ ...acc, [item]: index }), {});
+
+      const sortedClasses = classes.sort((a, b) => 
+        scheduleOrder[a.schedule] - scheduleOrder[b.schedule]
+      );
+
+      return res.status(200).json({
+        classes: sortedClasses,
+        totalPages: Math.max(1, totalWeeks),
+        currentWeek: {
+          start: targetWeekStart.toLocaleDateString('es-AR'),
+          end: targetWeekEnd.toLocaleDateString('es-AR')
+        }
+      });
+    }
+
+    // Lógica para USUARIOS NORMALES
+    let query = {};
     if (userId) {
       const user = await User.findById(userId);
-
-      // Verificar suscripción activa y válida
-      if (user?.subscription?.active && new Date(user.subscription.expiresAt) > new Date()) {
-        const startDateFilter = user.subscription.startDate || new Date(0); // 1970-01-01 si no existe
-
-        query = {
-          schedule: { $in: user.subscription.selectedSchedules },
-          date: {
-            $gte: startDateFilter,
-            $lte: user.subscription.expiresAt
-          }
-        };
-      } else {
+      
+      if (!user?.subscription?.active || new Date(user.subscription.expiresAt) <= new Date()) {
         return res.status(403).json([]);
       }
 
-      console.log('Query:', JSON.stringify(query));
-      console.log('User subscription:', {
-        startDate: user.subscription.startDate,
-        expiresAt: user.subscription.expiresAt,
-        schedules: user.subscription.selectedSchedules
-      });
-
+      query = {
+        schedule: { $in: user.subscription.selectedSchedules },
+        date: {
+          $gte: user.subscription.startDate || new Date(0),
+          $lte: user.subscription.expiresAt
+        }
+      };
     }
-
 
     const classes = await Class.find(query)
       .sort({ date: 1 })
@@ -41,7 +93,7 @@ export const getClasses = async (req, res) => {
     res.status(200).json(classes);
   } catch (error) {
     console.error("Error en getClasses:", error);
-    res.status(500).json([]);
+    res.status(500).json(req.user.isAdmin ? { error: error.message } : []);
   }
 };
 

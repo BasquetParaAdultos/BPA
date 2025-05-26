@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { horariosbpa  } from "../config/schedules.js";
 
 const userSchema = new mongoose.Schema({
     username: {
@@ -84,19 +85,7 @@ const userSchema = new mongoose.Schema({
         selectedSchedules: {
             type: [{
                 type: String,
-                enum: [
-                    "Lunes 7hs en Meridiano V°",
-                    "Lunes 21hs en El Bosque",
-                    "Martes 21hs en El Bosque",
-                    "Martes 22hs en El Bosque",
-                    "Miercoles 7hs en Meridiano V°",
-                    "Jueves 19hs en Estación Norte (Femenino)",
-                    "Jueves 20hs en Estación Norte (Mixto)",
-                    "Viernes 7hs en Meridiano V°",
-                    "Viernes 21hs en El Bosque",
-                    "Sabado 9hs en El Bosque",
-                    "Sabado 10hs en El Bosque",
-                    "Sabado 11hs en El Bosque"]
+                enum: horariosbpa
             }],
             default: []
         },
@@ -128,24 +117,9 @@ const userSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Middleware para limpieza de datos antiguos
-userSchema.pre('save', function (next) {
-    // Migrar datos de suscripción antigua si existen
-    if (this.payment_status) {
-        this.subscription.active = this.payment_status === 'paid';
-        this.subscription.expiresAt = this.expiration_date;
-    }
-
-    // Eliminar campos obsoletos
-    if (this.payment_status) delete this.payment_status;
-    if (this.subscription_date) delete this.subscription_date;
-    if (this.expiration_date) delete this.expiration_date;
-
-    next();
-});
 
 // Índices para optimizar consultas
-userSchema.index({ 'subscription.active': 1 });        // Índice para búsquedas por estado
+userSchema.index({ 'subscription.active': 1, 'subscription.selectedSchedules': 1 });        // Índice para búsquedas por estado
 userSchema.index({ 'subscription.expiresAt': 1 });
 
 export default mongoose.model('User', userSchema);

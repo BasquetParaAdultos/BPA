@@ -8,7 +8,7 @@ function AdminClassesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { user } = useAuth();
-  const itemsPerPage = 6; // Clases por página
+  const itemsPerPage = 12; // Clases por página
 
   useEffect(() => {
     const fetchClasses = async () => {
