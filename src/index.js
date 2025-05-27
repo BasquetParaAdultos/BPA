@@ -5,5 +5,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 connectDB()
-app.listen(process.env.PORT)
-console.log('Servidor corriendo en el puerto 3001', process.env.PORT)
+.then(() => {
+    const port = process.env.PORT || 3001;
+    
+    // Escuchar en 0.0.0.0 (necesario para Render)
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`✅ Servidor activo en http://0.0.0.0:${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error('⛔ Fallo al iniciar:', error);
+    process.exit(1);
+  });
