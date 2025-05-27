@@ -1,44 +1,47 @@
 import cron from 'node-cron';
-import mongoose from 'mongoose';
 import Class from './models/class.model.js'; 
 import { horariosbpa } from './config/schedules.js';
 
-// Función para crear clases
 const generateClasses = async () => {
+  const startTime = new Date();
+  console.log(`[${startTime.toLocaleString('es-AR')}] 🔄 Iniciando generación de clases...`);
+
   try {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalizar fecha a medianoche
+    today.setHours(0, 0, 0, 0);
     
     const endDate = new Date(today);
     endDate.setDate(today.getDate() + 30);
 
-    // Obtener todas las clases existentes en el rango
+    console.log(`[${new Date().toLocaleString('es-AR')}] 📅 Rango de fechas: ${today.toISOString()} - ${endDate.toISOString()}`);
+
+    // Búsqueda de clases existentes
     const existingClasses = await Class.find({
       date: { $gte: today, $lte: endDate }
     }).lean();
 
-    // Crear un Set de identificadores únicos (fecha + horario)
+    console.log(`[${new Date().toLocaleString('es-AR')}] 🔍 ${existingClasses.length} clases existentes encontradas`);
+
     const existingClassesMap = new Set(
       existingClasses.map(c => `${c.date.toISOString()}|${c.schedule}`)
     );
 
-    // Generar todas las clases potenciales
     const classesToCreate = [];
-    
-    // Mapeo de días en español
     const daysMap = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
+    // Generación de clases
     for (let day = 0; day <= 30; day++) {
       const currentDate = new Date(today);
       currentDate.setDate(today.getDate() + day);
-      currentDate.setHours(0, 0, 0, 0); // Fecha sin hora
+      currentDate.setHours(0, 0, 0, 0);
 
       const dayName = daysMap[currentDate.getDay()];
-      
-      // Filtrar horarios del día
       const dailySchedules = horariosbpa.filter(schedule => 
         schedule.startsWith(dayName)
       );
+
+      // Registro detallado por día
+      console.log(`[${new Date().toLocaleString('es-AR')}] 📆 Procesando ${dayName} ${currentDate.toISOString()}: ${dailySchedules.length} horarios disponibles`);
 
       for (const schedule of dailySchedules) {
         const uniqueKey = `${currentDate.toISOString()}|${schedule}`;
@@ -59,25 +62,26 @@ const generateClasses = async () => {
       }
     }
 
-    // Insertar en lote solo las nuevas clases
+    // Inserción de clases
     if (classesToCreate.length > 0) {
       await Class.insertMany(classesToCreate);
-      console.log(`Creadas ${classesToCreate.length} nuevas clases`);
+      console.log(`[${new Date().toLocaleString('es-AR')}] 🎉 ${classesToCreate.length} clases creadas exitosamente`);
     } else {
-      console.log('No se necesitan nuevas clases');
+      console.log(`[${new Date().toLocaleString('es-AR')}] ⚠️  No se requirieron nuevas clases`);
     }
 
   } catch (error) {
-    console.error('Error generando clases:', error);
+    const errorTime = new Date();
+    console.error(`[${errorTime.toLocaleString('es-AR')}] 🚨 Error en generación de clases:`, error);
+  } finally {
+    const endTime = new Date();
+    const duration = endTime - startTime;
+    console.log(`[${endTime.toLocaleString('es-AR')}] ⏳ Proceso completado en ${duration}ms`);
   }
 };
 
-
-// Configurar el cron job para ejecutar diariamente a la medianoche
-cron.schedule('0 0 * * *', () => {
-  console.log('Iniciando generación de clases...');
-  generateClasses();
+// Configuración con zona horaria
+cron.schedule('0 0 * * *', generateClasses, {
+  scheduled: true,
+  timezone: 'America/Argentina/Buenos_Aires'
 });
-
-// Ejecutar inmediatamente al iniciar el servidor (opcional)
-generateClasses();
