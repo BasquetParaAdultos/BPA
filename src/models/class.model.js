@@ -37,6 +37,7 @@ classSchema.index(
   { date: 1, schedule: 1 },
   { unique: true, name: 'unique_class_schedule' }
 );
-
+// Agrega esto al final para manejar la conexión SSL en el esquema (opcional pero recomendado)
+classSchema.set('strictQuery', true); // Previene consultas con campos no definidos
 
 export default mongoose.model("Class", classSchema);

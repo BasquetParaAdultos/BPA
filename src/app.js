@@ -17,16 +17,10 @@ import paymentRoutes from "./routes/payment.routes.js";
 const app = express()
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Soporta dev y prod
   credentials: true,
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Cache-Control', // Añadir este header
-    'Content-Length', // Añadir para manejar preflight
-    'Pragma'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] // Añadir OPTIONS
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Content-Length', 'Pragma'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(morgan('dev'))
 app.use(express.json({

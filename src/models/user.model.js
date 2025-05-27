@@ -121,5 +121,18 @@ const userSchema = new mongoose.Schema({
 // Índices para optimizar consultas
 userSchema.index({ 'subscription.active': 1, 'subscription.selectedSchedules': 1 });        // Índice para búsquedas por estado
 userSchema.index({ 'subscription.expiresAt': 1 });
+// Añade validación de email y normalización
+userSchema.path('email').validate(async (email) => {
+    const emailCount = await mongoose.models.User.countDocuments({ email });
+    return !emailCount;
+}, 'El correo electrónico ya está registrado');
+
+// Normaliza el email antes de guardar
+userSchema.pre('save', function (next) {
+    if (this.isModified('email')) {
+        this.email = this.email.toLowerCase().trim();
+    }
+    next();
+});
 
 export default mongoose.model('User', userSchema);
