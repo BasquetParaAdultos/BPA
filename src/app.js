@@ -34,7 +34,8 @@ const corsOptions = {
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Content-Length', 'Pragma', 'X-Requested-With'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  exposedHeaders: ['Set-Cookie']
+  exposedHeaders: ['Set-Cookie'],
+  domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
 };
 
 app.use(cors(corsOptions));
