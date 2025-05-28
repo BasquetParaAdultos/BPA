@@ -10,9 +10,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001', // URL del backend
+        target: 'https://bpa-ftmu.onrender.com', // URL del backend
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
     },
   },
