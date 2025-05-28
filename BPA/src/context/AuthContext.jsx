@@ -36,8 +36,10 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             return res.data;
         } catch (error) {
-            handleAuthError(error);
-            throw error; // Propaga el error para manejo en componentes
+            // Manejo de errores mejorado
+            const errorData = error.response?.data || { message: "Error desconocido" };
+            setErrors(Array.isArray(errorData) ? errorData : [errorData.message]);
+            throw error;
         }
     };
 
@@ -48,19 +50,23 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             return res.data;
         } catch (error) {
-            handleAuthError(error);
-            throw error; // Propaga el error para manejo en componentes
+            // Manejo de errores mejorado
+            const errorData = error.response?.data || { message: "Credenciales incorrectas" };
+            setErrors(Array.isArray(errorData) ? errorData : [errorData.message]);
+            throw error;
         }
     };
 
-    const logout = () => {
-        // Limpiar cookies y estado
-        Cookies.remove('token');
-        setIsAuthenticated(false);
-        setUser(null);
-        
-        // Opcional: llamar a endpoint de logout en el backend
-        axios.post('/logout').catch(console.error);
+     const logout = async () => {
+        try {
+            await axios.post('/logout');
+        } catch (error) {
+            console.error("Error en logout:", error);
+        } finally {
+            Cookies.remove('token');
+            setIsAuthenticated(false);
+            setUser(null);
+        }
     };
 
     const refreshUser = useCallback(async () => {

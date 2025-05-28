@@ -4,6 +4,17 @@ import { createAccesToken } from '../libs/jwt.js'
 import jwt from 'jsonwebtoken'
 
 
+const setAuthCookie = (res, token) => {
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 semana
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    });
+};
+
+
 export const register = async (req, res) => {
     const { username, email, password } = req.body
 
@@ -23,11 +34,7 @@ export const register = async (req, res) => {
         const userSaved = await newUser.save()
         const token = await createAccesToken({ id: userSaved._id })
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: true, // Usa true en producción (HTTPS)
-            sameSite: 'lax'
-        });
+        setAuthCookie(res, token);
         res.json({
             id: userSaved._id,
             username: userSaved.username,
@@ -64,12 +71,7 @@ export const login = async (req, res) => {
             { expiresIn: "1h" }
         );
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "none",
-            maxAge: 3600000,
-        });
+       setAuthCookie(res, token);
 
         // Respuesta actualizada con nueva estructura de suscripción
         res.json({
@@ -98,10 +100,14 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
     res.cookie('token', '', {
-        expires: new Date(0)
-    })
-    return res.status(200).json({ message: 'Sesion cerrada correctamente' })
-}
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        expires: new Date(0),
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    });
+    res.status(200).json({ message: 'Sesión cerrada' });
+};
 
 export const profile = async (req, res) => {
     try {
