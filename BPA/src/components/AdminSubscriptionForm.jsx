@@ -59,7 +59,7 @@ const AdminSubscriptionForm = ({ user }) => {
             };
 
             const response = await axios.put(
-                `http://localhost:3001/api/admin/update-subscription/${user._id}`,
+                `${import.meta.env.VITE_API_URL}/api/admin/update-subscription/${user._id}`,
                 subscriptionData,
                 { withCredentials: true }
             );
@@ -81,7 +81,7 @@ const AdminSubscriptionForm = ({ user }) => {
         setIsCanceling(true);
         try {
             const response = await axios.put(
-                `http://localhost:3001/api/admin/update-subscription/${user._id}`,
+                `${import.meta.env.VITE_API_URL}/api/admin/update-subscription/${user._id}`,
                 {
                     subscription: {
                         active: false,
@@ -135,7 +135,7 @@ const AdminSubscriptionForm = ({ user }) => {
             };
 
             const response = await axios.put(
-                `http://localhost:3001/api/admin/update-subscription/${user._id}`,
+                `${import.meta.env.VITE_API_URL}/api/admin/update-subscription/${user._id}`,
                 { subscription: subscriptionUpdate },
                 { withCredentials: true }
             );

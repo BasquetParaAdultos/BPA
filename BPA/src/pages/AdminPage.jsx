@@ -26,7 +26,7 @@ function AdminPage() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const res = await axios.get('http://localhost:3001/api/admin/users', {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
                     withCredentials: true
                 });
                 setUsers(res.data);

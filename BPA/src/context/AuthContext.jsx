@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 
     const refreshUser = useCallback(async () => {
         try {
-            const res = await axios.get('http://localhost:3001/api/profile', {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile`, {
                 withCredentials: true,
                 headers: { 'Cache-Control': 'no-store' }
             });

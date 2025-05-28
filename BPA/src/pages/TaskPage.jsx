@@ -42,7 +42,7 @@ function TaskPage() {
       }
 
       const res = await axios.post(
-        'http://localhost:3001/api/create-payment',
+        `${import.meta.env.VITE_API_URL}/api/create-payment`,
         {
           userId: user.id,
           option: activeOption,

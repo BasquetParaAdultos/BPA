@@ -53,7 +53,7 @@ function ProfilePage() {
                 setLoadingProfile(true);
 
                 if (isViewingOtherProfile) {
-                    const res = await axios.get(`http://localhost:3001/api/admin/user/${userId}`, {
+                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/user/${userId}`, {
                         withCredentials: true
                     });
                     setViewedUser(res.data);
@@ -111,7 +111,7 @@ function ProfilePage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put('http://localhost:3001/api/update', formData, {
+            const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/update`, formData, {
                 withCredentials: true,
                 headers: { 'Content-Type': 'application/json' }
             });
