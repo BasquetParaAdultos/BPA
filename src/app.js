@@ -16,12 +16,31 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express()
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Soporta dev y prod
+// Configuración de CORS mejorada
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://bpafrontend.vercel.app',
+      'https://bpafrontend-git-main-basquetparaadultos-projects.vercel.app',
+      'http://localhost:5173'
+    ];
+    
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origen no permitido por CORS'));
+    }
+  },
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Content-Length', 'Pragma'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Content-Length', 'Pragma', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  exposedHeaders: ['Set-Cookie']
+};
+
+app.use(cors(corsOptions));
+
+// Manejar preflight para todas las rutas
+app.options('*', cors(corsOptions));
 app.use(morgan('dev'))
 app.use(express.json({
   verify: (req, res, buf) => {

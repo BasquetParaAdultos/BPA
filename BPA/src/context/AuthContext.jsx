@@ -1,105 +1,141 @@
 import { createContext, useState, useContext, useEffect, useCallback } from "react";
-import { registerRequest, loginRequest, verityTokenRequest } from '../api/auth'
-import axios from 'axios';
+import axios from '../config/axios'; // Importa tu instancia configurada de Axios
 import Cookies from "js-cookie";
 
-
-export const AuthContext = createContext()
+export const AuthContext = createContext();
 
 export const useAuth = () => {
-    const context = useContext(AuthContext)
+    const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider')
+        throw new Error('useAuth must be used within an AuthProvider');
     }
-    return context
-}
+    return context;
+};
 
 export const AuthProvider = ({ children }) => {
-
-    const [user, setUser] = useState(null)
-    const [isAuthenticated, setIsAuthenicated] = useState(false)
-    const [errors, setErrors] = useState([])
-    const [loading, setLoading] = useState(true)
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [errors, setErrors] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [initialLoading, setInitialLoading] = useState(true);
 
-    const signup = async (user) => {
-        try {
-            const res = await registerRequest(user)
-            console.log(res.data)
-            setUser(res.data)
-            setIsAuthenicated(true)
-        } catch (error) {
-            console.log(error.response)
-            setErrors(error.response.data)
-        }
-    }
-
-    const signin = async (user) => {
-        try {
-            const res = await loginRequest(user)
-            setUser(res.data)
-            setIsAuthenicated(true)
-        } catch (error) {
-            if (Array.isArray(error.response.data)) {
-                return setErrors(error.response.data)
-            }
-            setErrors([error.response.data.message || "Credenciales incorrectas"])
-        }
-    }
-
-    const logout = () => {
-        Cookies.remove('token')
-        setIsAuthenicated(false)
-        setUser(null)
-    }
-
-    const refreshUser = useCallback(async () => {
-        try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/profile`, {
-                withCredentials: true,
-                headers: { 'Cache-Control': 'no-store' }
-            });
-            setUser(res.data);
-        } catch (error) {
-            console.error("Error actualizando usuario:", error.response?.data);
-        }
-    }, []);
-
+    // Función para limpiar errores después de 5 segundos
     useEffect(() => {
         if (errors.length > 0) {
             const timer = setTimeout(() => {
-                setErrors([])
-            }, 5000)
-            return () => clearTimeout(timer)
+                setErrors([]);
+            }, 5000);
+            return () => clearTimeout(timer);
         }
-    }, [errors])
+    }, [errors]);
+
+    const signup = async (userData) => {
+        try {
+            const res = await axios.post('/register', userData);
+            setUser(res.data);
+            setIsAuthenticated(true);
+            return res.data;
+        } catch (error) {
+            handleAuthError(error);
+            throw error; // Propaga el error para manejo en componentes
+        }
+    };
+
+    const signin = async (credentials) => {
+        try {
+            const res = await axios.post('/login', credentials);
+            setUser(res.data);
+            setIsAuthenticated(true);
+            return res.data;
+        } catch (error) {
+            handleAuthError(error);
+            throw error; // Propaga el error para manejo en componentes
+        }
+    };
+
+    const logout = () => {
+        // Limpiar cookies y estado
+        Cookies.remove('token');
+        setIsAuthenticated(false);
+        setUser(null);
+        
+        // Opcional: llamar a endpoint de logout en el backend
+        axios.post('/logout').catch(console.error);
+    };
+
+    const refreshUser = useCallback(async () => {
+        try {
+            const res = await axios.get('/profile', {
+                headers: { 'Cache-Control': 'no-store' } // Evitar caché
+            });
+            setUser(res.data);
+            return res.data;
+        } catch (error) {
+            console.error("Error actualizando usuario:", error.response?.data);
+            // Si no podemos refrescar, consideramos que la sesión es inválida
+            if (error.response?.status === 401) {
+                logout();
+            }
+            throw error;
+        }
+    }, []);
+
+    const checkAuth = useCallback(async () => {
+        try {
+            const res = await axios.get('/verify');
+            if (!res.data) {
+                setIsAuthenticated(false);
+                return;
+            }
+            
+            setUser({
+                ...res.data,
+                id: res.data.id || res.data._id
+            });
+            setIsAuthenticated(true);
+        } catch (error) {
+            setIsAuthenticated(false);
+            setUser(null);
+            
+            // Manejar errores específicos
+            if (error.response?.status === 401) {
+                console.log("Sesión expirada");
+            }
+        } finally {
+            setLoading(false);
+            setInitialLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        async function checkLogin() {
-            try {
-                const res = await verityTokenRequest(); // Sin parámetros
-                if (!res.data) {
-                    setIsAuthenicated(false);
-                    setLoading(false);
-                    return;
-                }
-                setUser({
-                    ...res.data,
-                    id: res.data.id
+        checkAuth();
+    }, [checkAuth]);
 
-                });
-                setIsAuthenicated(true);
-                setLoading(false);
-            } catch (error) {
-                setIsAuthenicated(false);
-                setUser(null);
-                setLoading(false);
-            } finally {
-                setInitialLoading(false); // ← Actualiza aquí
-            }
+    // Manejo centralizado de errores de autenticación
+    const handleAuthError = (error) => {
+        const response = error.response;
+        
+        if (!response) {
+            setErrors(["Error de red. Verifica tu conexión"]);
+            return;
         }
-        checkLogin();
-    }, []);
+
+        if (response.status === 401) {
+            setErrors(["Credenciales inválidas"]);
+        } else if (response.status === 400) {
+            if (Array.isArray(response.data)) {
+                setErrors(response.data);
+            } else if (response.data.message) {
+                setErrors([response.data.message]);
+            } else {
+                setErrors(["Datos inválidos"]);
+            }
+        } else if (response.status === 500) {
+            setErrors(["Error interno del servidor"]);
+        } else {
+            setErrors([`Error inesperado: ${response.status}`]);
+        }
+    };
 
     return (
         <AuthContext.Provider
@@ -113,8 +149,9 @@ export const AuthProvider = ({ children }) => {
                 user,
                 isAuthenticated,
                 errors
-            }}>
+            }}
+        >
             {children}
         </AuthContext.Provider>
-    )
-}
+    );
+};

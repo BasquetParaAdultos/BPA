@@ -6,15 +6,6 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(),
   tailwindcss(),
-  ],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://bpa-ftmu.onrender.com', // URL del backend
-        changeOrigin: true,
-        secure: true,
-      },
-    },
-  },
+  ]
 
 })
