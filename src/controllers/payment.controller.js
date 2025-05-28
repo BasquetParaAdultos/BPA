@@ -61,7 +61,7 @@ export const createPayment = async (req, res) => {
     };
 
     // Paso 5: Configuración dinámica de URLs
-    const notificationUrl = `https://0ef3-190-191-21-192.ngrok-free.app/api/webhook`;
+    const notificationUrl = `${process.env.BACKEND_URL}/api/webhook`;
 
     const preference = new Preference(client);
 

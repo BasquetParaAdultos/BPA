@@ -148,7 +148,7 @@ function HomePage() {
                                     <div className="p-6 text-center">
                                         <h3 className="text-2xl font-semibold text-gray-900 mb-3">Torneo BPA</h3>
                                         <p className="text-gray-600 leading-relaxed">
-                                            Mesualmente se realiza un torneo para todos aquellos alumnos que quieran participar.
+                                            Mensualmente se realiza un torneo para todos aquellos alumnos que quieran participar.
                                         </p>
                                     </div>
                                 </div>

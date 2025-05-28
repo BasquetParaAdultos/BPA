@@ -25,7 +25,7 @@ export const register = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false, // Usa true en producción (HTTPS)
+            secure: true, // Usa true en producción (HTTPS)
             sameSite: 'lax'
         });
         res.json({
