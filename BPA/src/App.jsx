@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TaskProvider } from './context/TaskContext'
@@ -18,6 +19,16 @@ import ActiveSubscriptionsTable from './components/ActiveSubscriptionsTable';
 
 import ProtectedRoute from './ProtectedRoute'
 import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
+
+
+useEffect(() => {
+  console.log("Environment Variables:", {
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    MODE: import.meta.env.MODE,
+    NODE_ENV: import.meta.env.NODE_ENV
+  });
+}, []);
+
 
 function App() {
   return (

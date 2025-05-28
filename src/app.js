@@ -26,7 +26,7 @@ const corsOptions = {
     ];
     
     if (!origin) return callback(null, true);
-    
+
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -42,6 +42,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+
+app.set('trust proxy', 1);
 // Manejar preflight para todas las rutas
 app.options('*', cors(corsOptions));
 app.use(morgan('dev'))
