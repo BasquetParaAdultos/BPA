@@ -12,11 +12,6 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false, // Desactiva en producción para mejor rendimiento
     minify: 'terser', // Mejor compresión
-    terserOptions: {
-      compress: {
-        drop_console: true, // Elimina console.log en producción
-      },
-    },
   },
   define: {
     'process.env': {}, // Necesario para compatibilidad con algunas librerías

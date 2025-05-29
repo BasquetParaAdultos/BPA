@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect, useCallback } from "react";
-import axios from '../config/axios'; // Importa tu instancia configurada de Axios
+import axios from '../api/axios'; // Importa tu instancia configurada de Axios
 import Cookies from "js-cookie";
 
 export const AuthContext = createContext();

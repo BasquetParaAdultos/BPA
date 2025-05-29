@@ -429,7 +429,7 @@ function HomePage() {
                                     </div>
                                     <div className="px-6 py-4">
                                         <h3 className="text-lg font-medium text-gray-900">Dirección:</h3>
-                                        <p className="mt-1 text-gray-600">Calle 131 e/ 39 y 40</p>
+                                        <p className="mt-1 text-gray-600">Calle 510 e/ 6 y 7</p>
                                     </div>
                                     <div className="border-t border-gray-200 px-6 py-4">  
                                         <h3 className="text-lg font-medium text-gray-900">Horarios:</h3>

@@ -21,7 +21,10 @@ import ProtectedRoute from './ProtectedRoute'
 import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
 
 
-useEffect(() => {
+
+function App() {
+
+  useEffect(() => {
   console.log("Environment Variables:", {
     VITE_API_URL: import.meta.env.VITE_API_URL,
     MODE: import.meta.env.MODE,
@@ -29,8 +32,6 @@ useEffect(() => {
   });
 }, []);
 
-
-function App() {
   return (
     <AuthProvider>
       <TaskProvider>
