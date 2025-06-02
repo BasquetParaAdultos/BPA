@@ -33,7 +33,7 @@ function App() {
   return (
     <AuthProvider>
       <TaskProvider>
-        <BrowserRouter>
+        <BrowserRouter basename='/'>
             <Navbar />
             <main className='container mx-auto px-10'>
             <Routes>
