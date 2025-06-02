@@ -20,8 +20,7 @@ const app = express()
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
-      'https://bpafrontend.vercel.app',
-      'https://bpafrontend-git-main-basquetparaadultos-projects.vercel.app',
+      process.env.FRONTEND_URL,
       'http://localhost:5173'
     ];
     
