@@ -26,9 +26,7 @@ function App() {
 
   useEffect(() => {
   console.log("Environment Variables:", {
-    VITE_API_URL: import.meta.env.VITE_API_URL,
-    MODE: import.meta.env.MODE,
-    NODE_ENV: import.meta.env.NODE_ENV
+    VITE_API_URL: import.meta.env.VITE_API_URL
   });
 }, []);
 
