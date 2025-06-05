@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { Link } from 'react-router-dom';
-import logo from "./images/home/logoBPA.png"
+import logo from "/images/home/logoBPA.png"
 
 function TaskPage() {
   const { user } = useAuth();
