@@ -22,7 +22,7 @@ function HomePage() {
                                        [text-shadow:_3px_3px_0_#000,_-1px_-1px_0_#000] 
                                        drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]
                                        transition-all duration-300">
-                            Básquet para adultos
+                            Básquet para adultosss
                         </h1>
 
                         {/* Subtítulo con efecto similar pero más sutil */}
