@@ -1,4 +1,5 @@
 import React from "react";
+import banner from "/images/home/BannerInicioBPA2.jpg";
 
 
 function HomePage() {
@@ -8,7 +9,7 @@ function HomePage() {
             <div className="relative w-full h-[320px] md:h-[480px]" id="home">
                 <div className="absolute inset-0 opacity-70">
                     <img
-                        src="/images/home/BannerInicioBPA2.jpg"
+                        src={banner}
                         alt="Background Image"
                         className="object-cover object-center w-full h-full"
                     />
@@ -22,7 +23,7 @@ function HomePage() {
                                        [text-shadow:_3px_3px_0_#000,_-1px_-1px_0_#000] 
                                        drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]
                                        transition-all duration-300">
-                            Básquet para adultosss
+                            Básquet para adultos
                         </h1>
 
                         {/* Subtítulo con efecto similar pero más sutil */}
