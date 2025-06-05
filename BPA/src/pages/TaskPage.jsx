@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { Link } from 'react-router-dom';
+import logo from "./images/home/logoBPA.png"
 
 function TaskPage() {
   const { user } = useAuth();
@@ -96,7 +97,7 @@ function TaskPage() {
           <div className="md:w-1/2 flex justify-center">
             <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 max-w-md">
               <img
-                src="./images/home/logoBPA.png"
+                src={logo}
                 alt="Logo BPA - Beneficios de la suscripción"
                 className="w-full h-auto object-contain"
               />
