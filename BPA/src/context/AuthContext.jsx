@@ -90,22 +90,22 @@ export const AuthProvider = ({ children }) => {
     try {
         const res = await axios.get('/verify');
         
-        // Verificamos si tenemos un usuario válido (con ID)
-        if (res.data.id) {
+        // Verifica explícitamente el estado de autenticación
+        if (res.data.authenticated) {
             setUser({
-                ...res.data,
-                id: res.data.id // Ya viene del backend como 'id'
+                ...res.data.user,
+                id: res.data.user.id || res.data.user._id
             });
             setIsAuthenticated(true);
         } else {
-            // Respuesta exitosa pero sin usuario autenticado
             setIsAuthenticated(false);
-            setUser(null);
+            setUser(null)
         }
     } catch (error) {
         // Solo manejamos errores de red/servidor aquí
         setIsAuthenticated(false);
         setUser(null);
+        
         
         // El 401 ya no debería ocurrir, pero mantenemos el log por otros errores
         console.error("Error en verificación de token:", error);

@@ -135,24 +135,19 @@ export const verifyToken = async (req, res) => {
     // Si no hay token, responder con usuario vacío
     if (!token) {
         return res.status(200).json({
-            id: null,
-            username: null,
-            email: null,
-            subscription: {
-                active: false,
-                classesAllowed: 0,
-                selectedSchedules: [],
-                expiresAt: null,
-                lastPayment: null
-            }
+            authenticated: false, // Nuevo campo clave
+            user: null
         });
     }
 
     jwt.verify(token, process.env.TOKEN_SECRET, async (err, decoded) => {
-        if (err) return res.status(401).json({ 
-           message: 'Token inválido',
-           user: null 
-         });
+        if (err) {
+            return res.status(200).json({
+                authenticated: false, // Nuevo campo clave
+                message: 'Token inválido',
+                user: null
+            });
+        }
 
         try {
             const userFound = await User.findById(decoded.id)
@@ -160,6 +155,7 @@ export const verifyToken = async (req, res) => {
                 .lean();
 
             if (!userFound) return res.status(404).json({ 
+                authenticated: false, // Nuevo campo clave
                 message: 'Usuario no encontrado',
                 user: null
              });
@@ -186,7 +182,10 @@ export const verifyToken = async (req, res) => {
                 }
             };
 
-            res.json(response);
+            res.json({
+                authenticated: true, // Nuevo campo clave
+                user: response
+            });
 
         } catch (error) {
             console.error("Error en verifyToken:", error);
