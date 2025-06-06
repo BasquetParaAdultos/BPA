@@ -10,37 +10,48 @@ const instance = axios.create({
   timeout: 15000, // 15 segundos de timeout
 });
 
-// Interceptor para solicitudes: ya está bien
+// Interceptor para solicitudes
 instance.interceptors.request.use(config => {
-  config.withCredentials = true; // Forzar en todas las solicitudes
+  config.withCredentials = true;
   return config;
+}, error => {
+  return Promise.reject(error);
 });
 
-// Interceptor para manejar errores globalmente (CORREGIDO)
+// Interceptor para manejar errores globales (MEJORADO)
 instance.interceptors.response.use(
   response => response,
   error => {
-    if (error.response) {
-      console.error("Error de respuesta:", {
-        status: error.response.status,
-        data: error.response.data,
-        url: error.response.config.url
-      });
-      
-      // Manejar error 401 específicamente
-      if (error.response.status === 401) {
-        // 1. Limpiar la cookie token en el frontend
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.onrender.com;';
+    // Solo manejar errores en el lado del cliente
+    if (typeof window !== 'undefined') {
+      if (error.response) {
+        console.error("Error de respuesta:", {
+          status: error.response.status,
+          data: error.response.data,
+          url: error.response.config.url
+        });
         
-        // 2. Redirigir a login
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+        // Manejar error 401 específicamente
+        if (error.response.status === 401) {
+          // Evitar bucles: no redirigir si ya estamos en login
+          if (window.location.pathname !== '/login') {
+            // 1. Limpiar la cookie token en el frontend
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.onrender.com;';
+            
+            // 2. Limpiar localStorage
+            localStorage.removeItem('authState');
+            
+            // 3. Redirigir con retraso para evitar conflictos
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 100);
+          }
         }
+      } else if (error.request) {
+        console.error("Error de red:", error.request);
+      } else {
+        console.error("Error de configuración:", error.message);
       }
-    } else if (error.request) {
-      console.error("Error de red:", error.request);
-    } else {
-      console.error("Error de configuración:", error.message);
     }
     
     return Promise.reject(error);

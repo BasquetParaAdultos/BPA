@@ -13,8 +13,16 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState(() => {
+        const savedAuth = localStorage.getItem('authState');
+        return savedAuth ? JSON.parse(savedAuth).user : null;
+    });
+
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        const savedAuth = localStorage.getItem('authState');
+        return savedAuth ? JSON.parse(savedAuth).isAuthenticated : false;
+    });
+    
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -40,6 +48,15 @@ export const AuthProvider = ({ children }) => {
 
         checkCookie();
     }, []);
+
+    // Persistir estado en localStorage
+    useEffect(() => {
+        const authState = {
+            isAuthenticated,
+            user
+        };
+        localStorage.setItem('authState', JSON.stringify(authState));
+    }, [isAuthenticated, user]);
 
     const signup = async (userData) => {
         try {
@@ -129,6 +146,19 @@ export const AuthProvider = ({ children }) => {
             checkAuth();
         }
     }, [initialLoading]);
+
+
+    // verificacion de cookie
+    useEffect(() => {
+        const verifyCookie = async () => {
+            const hasToken = document.cookie.includes('token');
+            if (hasToken && !isAuthenticated) {
+                await checkAuth();
+            }
+        };
+
+        verifyCookie();
+    }, []);
 
 
     // Manejo centralizado de errores de autenticación
