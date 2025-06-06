@@ -152,7 +152,6 @@ export const AuthProvider = ({ children }) => {
                 signin,
                 logout,
                 refreshUser,
-                handleAuthError,
                 initialLoading,
                 loading,
                 user,

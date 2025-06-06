@@ -16,17 +16,20 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express()
 
-// Configuración de CORS mejorada
+/// Configuración de CORS mejorada
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log(`Solicitud recibida desde origen: ${origin}`);
     const allowedOrigins = [
-      process.env.FRONTEND_URL,
+      process.env.FRONTEND_URL, // URL explícita
       'http://localhost:5173'
     ];
     
+    // Permitir solicitudes sin origen (Postman, apps nativas)
     if (!origin) return callback(null, true);
-
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    
+    // Verificar contra la lista blanca
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Origen no permitido por CORS'));
@@ -35,15 +38,10 @@ const corsOptions = {
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Content-Length', 'Pragma', 'X-Requested-With'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  exposedHeaders: ['Set-Cookie'],
-  domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
+  // Eliminado exposedHeaders (no necesario)
 };
 
 app.use(cors(corsOptions));
-
-
-app.set('trust proxy', 1);
-// Manejar preflight para todas las rutas
 app.options('*', cors(corsOptions));
 app.use(morgan('dev'))
 app.use(express.json({
