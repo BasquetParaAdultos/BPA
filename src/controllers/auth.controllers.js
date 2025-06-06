@@ -132,17 +132,37 @@ export const profile = async (req, res) => {
 export const verifyToken = async (req, res) => {
     const { token } = req.cookies;
 
-    if (!token) return res.status(401).json({ message: 'No autorizado' });
+    // Si no hay token, responder con usuario vacío
+    if (!token) {
+        return res.status(200).json({
+            id: null,
+            username: null,
+            email: null,
+            subscription: {
+                active: false,
+                classesAllowed: 0,
+                selectedSchedules: [],
+                expiresAt: null,
+                lastPayment: null
+            }
+        });
+    }
 
     jwt.verify(token, process.env.TOKEN_SECRET, async (err, decoded) => {
-        if (err) return res.status(401).json({ message: 'Token inválido' });
+        if (err) return res.status(401).json({ 
+           message: 'Token inválido',
+           user: null 
+         });
 
         try {
             const userFound = await User.findById(decoded.id)
                 .select('-password')
                 .lean();
 
-            if (!userFound) return res.status(404).json({ message: 'Usuario no encontrado' });
+            if (!userFound) return res.status(404).json({ 
+                message: 'Usuario no encontrado',
+                user: null
+             });
 
             // Asegurar que la suscripción siempre tenga una estructura válida
             const safeSubscription = userFound.subscription || {

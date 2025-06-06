@@ -87,31 +87,33 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const checkAuth = useCallback(async () => {
-        try {
-            const res = await axios.get('/verify');
-            if (!res.data) {
-                setIsAuthenticated(false);
-                return;
-            }
-            
+    try {
+        const res = await axios.get('/verify');
+        
+        // Verificamos si tenemos un usuario válido (con ID)
+        if (res.data.id) {
             setUser({
                 ...res.data,
-                id: res.data.id || res.data._id
+                id: res.data.id // Ya viene del backend como 'id'
             });
             setIsAuthenticated(true);
-        } catch (error) {
+        } else {
+            // Respuesta exitosa pero sin usuario autenticado
             setIsAuthenticated(false);
             setUser(null);
-            
-            // Manejar errores específicos
-            if (error.response?.status === 401) {
-                console.log("Sesión expirada");
-            }
-        } finally {
-            setLoading(false);
-            setInitialLoading(false);
         }
-    }, []);
+    } catch (error) {
+        // Solo manejamos errores de red/servidor aquí
+        setIsAuthenticated(false);
+        setUser(null);
+        
+        // El 401 ya no debería ocurrir, pero mantenemos el log por otros errores
+        console.error("Error en verificación de token:", error);
+    } finally {
+        setLoading(false);
+        setInitialLoading(false);
+    }
+}, []);
 
     useEffect(() => {
         checkAuth();
@@ -150,6 +152,7 @@ export const AuthProvider = ({ children }) => {
                 signin,
                 logout,
                 refreshUser,
+                handleAuthError,
                 initialLoading,
                 loading,
                 user,
