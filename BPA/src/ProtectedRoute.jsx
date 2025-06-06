@@ -4,7 +4,7 @@ import { useAuth } from "./context/AuthContext";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 function ProtectedRoute() {
-    const { loading, isAuthenticated, user } = useAuth();
+    const { loading, isAuthenticated, user, checkAuth } = useAuth();
     const location = useLocation();
     const currentPath = location.pathname;
 
