@@ -1,20 +1,24 @@
-import React from "react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 function ProtectedRoute() {
-    const { loading, isAuthenticated, user, checkAuth } = useAuth();
+    const { loading, isAuthenticated, user, initialLoading } = useAuth();
     const location = useLocation();
     const currentPath = location.pathname;
 
-    // Verificar autenticación al cambiar de ruta
+    // Solo verificar autenticación si aún está en carga inicial
     useEffect(() => {
-        checkAuth();
-    }, [location.pathname])
+        if (initialLoading) {
+            checkAuth();
+        }
+    }, [initialLoading, location.pathname]);
 
-    if (loading) return <h1>Cargando...</h1>;
-    if (!loading && !isAuthenticated) return <Navigate to='/login' state={{ from: location }} replace />;
+    if (initialLoading) return <h1>Cargando...</h1>;
+    
+    if (!isAuthenticated) {
+        return <Navigate to='/login' state={{ from: location }} replace />;
+    }
     
     // Nueva verificación de suscripción
     if (currentPath === '/classes') {

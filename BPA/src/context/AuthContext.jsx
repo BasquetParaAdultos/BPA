@@ -98,11 +98,11 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    // En checkAuth
     const checkAuth = useCallback(async () => {
         try {
             const res = await axios.get('/verify');
 
-            // Verifica explícitamente el estado de autenticación
             if (res.data.authenticated) {
                 setUser({
                     ...res.data.user,
@@ -111,25 +111,25 @@ export const AuthProvider = ({ children }) => {
                 setIsAuthenticated(true);
             } else {
                 setIsAuthenticated(false);
-                setUser(null)
+                setUser(null);
             }
         } catch (error) {
-            // Solo manejamos errores de red/servidor aquí
             setIsAuthenticated(false);
             setUser(null);
-
-
-            // El 401 ya no debería ocurrir, pero mantenemos el log por otros errores
-            console.error("Error en verificación de token:", error);
+            console.error("Error en verificación:", error);
         } finally {
             setLoading(false);
-            setInitialLoading(false);
+            setInitialLoading(false); // Importante!
         }
     }, []);
 
+    // Verificar autenticación solo una vez al montar
     useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
+        if (initialLoading) {
+            checkAuth();
+        }
+    }, [initialLoading]);
+
 
     // Manejo centralizado de errores de autenticación
     const handleAuthError = (error) => {
