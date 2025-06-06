@@ -29,6 +29,18 @@ export const AuthProvider = ({ children }) => {
         }
     }, [errors]);
 
+    // En tu AuthContext, añade esto al inicializar
+    useEffect(() => {
+        const checkCookie = async () => {
+            const hasToken = document.cookie.includes('token');
+            if (hasToken && !isAuthenticated) {
+                await checkAuth();
+            }
+        };
+
+        checkCookie();
+    }, []);
+
     const signup = async (userData) => {
         try {
             const res = await axios.post('/register', userData);
@@ -57,7 +69,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-     const logout = async () => {
+    const logout = async () => {
         try {
             await axios.post('/logout');
         } catch (error) {
@@ -87,33 +99,33 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const checkAuth = useCallback(async () => {
-    try {
-        const res = await axios.get('/verify');
-        
-        // Verifica explícitamente el estado de autenticación
-        if (res.data.authenticated) {
-            setUser({
-                ...res.data.user,
-                id: res.data.user.id || res.data.user._id
-            });
-            setIsAuthenticated(true);
-        } else {
+        try {
+            const res = await axios.get('/verify');
+
+            // Verifica explícitamente el estado de autenticación
+            if (res.data.authenticated) {
+                setUser({
+                    ...res.data.user,
+                    id: res.data.user.id || res.data.user._id
+                });
+                setIsAuthenticated(true);
+            } else {
+                setIsAuthenticated(false);
+                setUser(null)
+            }
+        } catch (error) {
+            // Solo manejamos errores de red/servidor aquí
             setIsAuthenticated(false);
-            setUser(null)
+            setUser(null);
+
+
+            // El 401 ya no debería ocurrir, pero mantenemos el log por otros errores
+            console.error("Error en verificación de token:", error);
+        } finally {
+            setLoading(false);
+            setInitialLoading(false);
         }
-    } catch (error) {
-        // Solo manejamos errores de red/servidor aquí
-        setIsAuthenticated(false);
-        setUser(null);
-        
-        
-        // El 401 ya no debería ocurrir, pero mantenemos el log por otros errores
-        console.error("Error en verificación de token:", error);
-    } finally {
-        setLoading(false);
-        setInitialLoading(false);
-    }
-}, []);
+    }, []);
 
     useEffect(() => {
         checkAuth();
@@ -122,7 +134,7 @@ export const AuthProvider = ({ children }) => {
     // Manejo centralizado de errores de autenticación
     const handleAuthError = (error) => {
         const response = error.response;
-        
+
         if (!response) {
             setErrors(["Error de red. Verifica tu conexión"]);
             return;

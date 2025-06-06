@@ -7,8 +7,13 @@ function ProtectedRoute() {
     const location = useLocation();
     const currentPath = location.pathname;
 
+    // Verificar autenticación al cambiar de ruta
+    useEffect(() => {
+        checkAuth();
+    }, [location.pathname])
+
     if (loading) return <h1>Cargando...</h1>;
-    if (!loading && !isAuthenticated) return <Navigate to='/login' replace />;
+    if (!loading && !isAuthenticated) return <Navigate to='/login' state={{ from: location }} replace />;
     
     // Nueva verificación de suscripción
     if (currentPath === '/classes') {

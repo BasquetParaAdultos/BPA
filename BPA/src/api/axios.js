@@ -30,4 +30,10 @@ instance.interceptors.response.use(
   }
 );
 
+// Agrega un interceptor para solicitudes
+instance.interceptors.request.use(config => {
+  config.withCredentials = true; // Forzar en todas las solicitudes
+  return config;
+});
+
 export default instance;

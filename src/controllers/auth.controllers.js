@@ -9,8 +9,9 @@ const setAuthCookie = (res, token) => {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 semana
+        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined,
+        path: '/' // ¡Asegúrate de incluir esto!
     });
 };
 
