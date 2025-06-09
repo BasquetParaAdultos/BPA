@@ -1,18 +1,16 @@
 // pages/AdminPage.jsx
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from '../api/axios';
+import axios from '../api/axios'; // Usa la instancia configurada
 import { useNavigate } from 'react-router-dom';
 import AdminFilter from '../components/AdminFilter';
 import ClassAttendanceIndicator from '../components/ClassAttendanceIndicator';
-
-
 
 function AdminPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { user } = useAuth();
+    const { user: currentUser } = useAuth(); // Renombrado para evitar conflicto
     const navigate = useNavigate();
 
     // Estado para los filtros
@@ -24,30 +22,38 @@ function AdminPage() {
     });
 
     useEffect(() => {
+        // Verificar permisos de administrador
+        if (!currentUser || currentUser.role !== 'admin') {
+            setError("Acceso denegado: no tienes permisos de administrador");
+            setLoading(false);
+            return;
+        }
+
         const fetchUsers = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
-                    withCredentials: true
-                });
+                // ✅ Usa la instancia configurada de Axios
+                const res = await axios.get('/admin/users');
                 setUsers(res.data);
             } catch (err) {
                 if (err.response?.status === 403) {
                     setError("Acceso denegado: no tienes permisos de administrador");
                 } else {
                     setError("Error al cargar usuarios");
+                    console.error("Error fetching users:", err);
                 }
             } finally {
                 setLoading(false);
             }
         };
+        
         fetchUsers();
-    }, []);
+    }, [currentUser]); // Dependencia actualizada
 
     // Función para filtrar usuarios
     const filteredUsers = users.filter(user => {
         // Filtro por nombre
         const nameMatch = user.username.toLowerCase().includes(filters.name.toLowerCase()) ||
-            user.full_name.toLowerCase().includes(filters.name.toLowerCase());
+            (user.full_name && user.full_name.toLowerCase().includes(filters.name.toLowerCase()));
 
         // Filtro por estado de subscripción
         const subscriptionStatusMatch = filters.activeSubscription === 'all' ? true :
@@ -66,6 +72,24 @@ function AdminPage() {
 
         return nameMatch && subscriptionStatusMatch && subscriptionTypeMatch && scheduleMatch;
     });
+
+    // Redirigir si no es admin
+    if (currentUser && currentUser.role !== 'admin') {
+        return (
+            <div className="p-4 min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="bg-red-100 border border-red-400 text-red-700 px-8 py-6 rounded-lg text-center max-w-md">
+                    <h2 className="text-xl font-bold mb-2">Acceso restringido</h2>
+                    <p>No tienes permisos para acceder a esta página</p>
+                    <button
+                        onClick={() => navigate('/')}
+                        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Volver al inicio
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4 min-h-screen bg-gray-100">
