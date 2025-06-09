@@ -53,10 +53,7 @@ function ProfilePage() {
 
                 if (isViewingOtherProfile) {
                     // Cargar perfil de otro usuario
-                    const res = await axiosInstance.get(`admin/user/${userId}`, {
-                        withCredentials: true,
-                        headers: { 'Content-Type': 'application/json' }
-                    });
+                    const res = await axios.get(`/admin/user/${userId}`);
                     setViewedUser(res.data);
                 } else {
                     // Actualizar datos del usuario actual usando verify
