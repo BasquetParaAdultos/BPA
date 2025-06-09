@@ -1,6 +1,6 @@
 // pages/admin/AdminClassesPage.jsx
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 function AdminClassesPage() {

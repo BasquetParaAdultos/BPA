@@ -1,7 +1,7 @@
 // pages/AdminPage.jsx
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import axios from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import AdminFilter from '../components/AdminFilter';
 import ClassAttendanceIndicator from '../components/ClassAttendanceIndicator';

@@ -4,6 +4,7 @@ import HealthDataForm from '../components/HealthDataForm.jsx';
 import HealthDataView from '../components/HealthDataView.jsx';
 import { useParams } from 'react-router-dom';
 import AdminSubscriptionForm from '../components/AdminSubscriptionForm.jsx';
+import axios from '../api/axios';
 
 function ProfilePage() {
     const { userId } = useParams();

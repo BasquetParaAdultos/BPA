@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axios';
 
 const ClassAttendanceIndicator = ({ userId }) => {
   const [attendance, setAttendance] = useState([null, null, null, null, null]);
