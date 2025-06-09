@@ -141,7 +141,25 @@ function ProfilePage() {
                                 />
                             </div>
 
-                            {/* ... otros campos básicos ... */}
+                           
+                        <div>
+                                <label className="block text-gray-700">Teléfono</label>
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+
+                            <div className="col-span-2">
+                                <label className="block text-gray-700">Descripción</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    className="w-full p-2 border rounded h-32"
+                                />
+                            </div>
                         </div>
 
                         {/* Incorpora el HealthDataForm con el nuevo manejador */}
