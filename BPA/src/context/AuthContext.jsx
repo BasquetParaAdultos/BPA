@@ -37,18 +37,6 @@ export const AuthProvider = ({ children }) => {
         }
     }, [errors]);
 
-    // En tu AuthContext, añade esto al inicializar
-    useEffect(() => {
-        const checkCookie = async () => {
-            const hasToken = document.cookie.includes('token');
-            if (hasToken && !isAuthenticated) {
-                await checkAuth();
-            }
-        };
-
-        checkCookie();
-    }, []);
-
     // Persistir estado en localStorage
     useEffect(() => {
         const authState = {
