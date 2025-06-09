@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from '../api/axios';
+import axios from '../api/axios'; // Usar instancia configurada
 import { useAuth } from '../context/AuthContext';
 
 const AdminSubscriptionForm = ({ user }) => {
@@ -12,14 +12,23 @@ const AdminSubscriptionForm = ({ user }) => {
     const [isEditingExpiration, setIsEditingExpiration] = useState(false);
     const [newExpirationDate, setNewExpirationDate] = useState('');
 
-    useEffect(() => {
-        // Inicializar con los valores existentes si hay suscripción
-        if (user.subscription?.active) {
-            setActiveOption(user.subscription.classesAllowed);
-            setSelectedSchedules(user.subscription.selectedSchedules);
-        }
-    }, [user]);
+    // Horarios disponibles
+    const scheduleOptions = [
+        "Lunes 7hs en Meridiano V°",
+        "Lunes 20hs en El Bosque",
+        "Lunes 21hs en El Bosque",
+        "Martes 21hs en El Bosque",
+        "Martes 22hs en El Bosque",
+        "Miércoles 7hs en Meridiano V°",
+        "Jueves 19hs en Estación Norte (Femenino)",
+        "Jueves 20hs en Estación Norte (Mixto)",
+        "Viernes 7hs en Meridiano V°",
+        "Viernes 21hs en El Bosque",
+        "Sábado 9hs en El Bosque",
+        "Sábado 10:30hs en El Bosque"
+    ];
 
+    // Opciones de suscripción
     const options = [
         { id: 1, label: '1 clase por semana' },
         { id: 2, label: '2 clases por semana' },
@@ -27,6 +36,15 @@ const AdminSubscriptionForm = ({ user }) => {
         { id: 4, label: '4 clases por semana' },
     ];
 
+    // Inicializar con valores existentes
+    useEffect(() => {
+        if (user?.subscription?.active) {
+            setActiveOption(user.subscription.classesAllowed);
+            setSelectedSchedules(user.subscription.selectedSchedules || []);
+        }
+    }, [user]);
+
+    // Manejar selección de horarios
     const toggleSchedule = (schedule) => {
         setSelectedSchedules(prev =>
             prev.includes(schedule)
@@ -35,34 +53,30 @@ const AdminSubscriptionForm = ({ user }) => {
         );
     };
 
+    // Eliminar horario seleccionado
     const removeSchedule = (index) => {
         setSelectedSchedules(prev => prev.filter((_, i) => i !== index));
     };
 
+    // Asignar nueva suscripción
     const handleAssignSubscription = async () => {
         try {
             const expirationDate = new Date();
             expirationDate.setDate(expirationDate.getDate() + 30);
 
-            // Convertir fechas a UTC
-            const startDateUTC = new Date().toISOString();
-            const expiresAtUTC = expirationDate.toISOString();
-
+            // Crear objeto de suscripción
             const subscriptionData = {
                 subscription: {
                     active: true,
                     classesAllowed: activeOption,
                     selectedSchedules,
-                    startDate: startDateUTC,
-                    expiresAt: expiresAtUTC
+                    startDate: new Date().toISOString(),
+                    expiresAt: expirationDate.toISOString()
                 }
             };
 
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_URL}/api/admin/update-subscription/${user._id}`,
-                subscriptionData,
-                { withCredentials: true }
-            );
+            // ✅ Usar instancia configurada de Axios
+            await axios.put(`/admin/update-subscription/${user._id}`, subscriptionData);
 
             await refreshUser();
             setMessage('Suscripción asignada exitosamente!');
@@ -72,27 +86,24 @@ const AdminSubscriptionForm = ({ user }) => {
 
         } catch (error) {
             console.error('Error:', error);
-            setMessage(`Error al asignar suscripción: ${error.response?.data?.details || error.message}`);
+            setMessage(`Error: ${error.response?.data?.message || error.message}`);
         }
     };
 
-    // Nueva función para cancelar suscripción
+    // Cancelar suscripción
     const handleCancelSubscription = async () => {
         setIsCanceling(true);
         try {
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_URL}/api/admin/update-subscription/${user._id}`,
-                {
-                    subscription: {
-                        active: false,
-                        classesAllowed: 0,
-                        selectedSchedules: [],
-                        startDate: null,
-                        expiresAt: null
-                    }
-                },
-                { withCredentials: true }
-            );
+            // ✅ Usar instancia configurada de Axios
+            await axios.put(`/admin/update-subscription/${user._id}`, {
+                subscription: {
+                    active: false,
+                    classesAllowed: 0,
+                    selectedSchedules: [],
+                    startDate: null,
+                    expiresAt: null
+                }
+            });
 
             await refreshUser();
             setMessage('Suscripción anulada exitosamente!');
@@ -107,20 +118,7 @@ const AdminSubscriptionForm = ({ user }) => {
         }
     };
 
-    // Función para formatear la fecha de vencimiento
-    const formatExpirationDate = (dateString) => {
-        if (!dateString) return '';
-        const options = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        return new Date(dateString).toLocaleDateString('es-ES', options);
-    };
-
-    // Función para actualizar la fecha de expiración
+    // Actualizar fecha de expiración
     const handleUpdateExpiration = async () => {
         try {
             if (!newExpirationDate) {
@@ -134,11 +132,10 @@ const AdminSubscriptionForm = ({ user }) => {
                 expiresAt: newExpirationDate
             };
 
-            const response = await axios.put(
-                `${import.meta.env.VITE_API_URL}/api/admin/update-subscription/${user._id}`,
-                { subscription: subscriptionUpdate },
-                { withCredentials: true }
-            );
+            // ✅ Usar instancia configurada de Axios
+            await axios.put(`/admin/update-subscription/${user._id}`, {
+                subscription: subscriptionUpdate
+            });
 
             await refreshUser();
             setMessage('Fecha actualizada exitosamente!');
@@ -148,51 +145,69 @@ const AdminSubscriptionForm = ({ user }) => {
         }
     };
 
+    // Formatear fecha para mostrar
+    const formatExpirationDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+
+        if (isNaN(date)) return 'Fecha inválida';
+
+        return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     return (
         <div className="mt-8 p-6 bg-white rounded-xl shadow-lg">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Administrar Suscripción</h2>
 
-            {/* Nuevo bloque de estado de suscripción */}
-            {user.subscription?.active && (
+            {/* Estado de suscripción activa */}
+            {user?.subscription?.active && (
                 <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
                         <div>
                             <h3 className="font-semibold text-blue-800">Suscripción Activa</h3>
                             {isEditingExpiration ? (
-                                <div className="mt-2 flex gap-2 items-center">
+                                <div className="mt-2 flex flex-col md:flex-row gap-2 items-start">
                                     <input
                                         type="datetime-local"
-                                        value={newExpirationDate || (user.subscription?.expiresAt ?
-                                            new Date(user.subscription.expiresAt).toISOString().slice(0, 16) : '')}
+                                        value={newExpirationDate ||
+                                            (user.subscription?.expiresAt ?
+                                                new Date(user.subscription.expiresAt).toISOString().slice(0, 16) : '')}
                                         onChange={(e) => {
                                             const localDate = new Date(e.target.value);
                                             const utcDate = new Date(localDate.getTime() - (localDate.getTimezoneOffset() * 60000));
                                             setNewExpirationDate(utcDate.toISOString());
                                         }}
+                                        className="p-2 border rounded"
                                     />
-                                    <button
-                                        onClick={handleUpdateExpiration}
-                                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                                    >
-                                        Confirmar
-                                    </button>
-                                    <button
-                                        onClick={() => setIsEditingExpiration(false)}
-                                        className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
-                                    >
-                                        Cancelar
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleUpdateExpiration}
+                                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                                        >
+                                            Confirmar
+                                        </button>
+                                        <button
+                                            onClick={() => setIsEditingExpiration(false)}
+                                            className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div>
                                     <p className="text-sm text-blue-700">
                                         Vence el: {formatExpirationDate(user.subscription.expiresAt)}
-
                                     </p>
                                     <p className="text-sm text-blue-700">
                                         Inició el: {formatExpirationDate(user.subscription.startDate)}
                                     </p>
-
                                 </div>
                             )}
                         </div>
@@ -217,8 +232,10 @@ const AdminSubscriptionForm = ({ user }) => {
                     </div>
                 </div>
             )}
+
+            {/* Formulario de suscripción */}
             <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden mb-4">
-                {/* Sección izquierda - Selección de paquete */}
+                {/* Selección de paquete */}
                 <div className="flex-1 p-6 space-y-4 border-r border-gray-200">
                     <h3 className="text-lg font-semibold">Tipo de suscripción</h3>
                     <div className="space-y-2">
@@ -230,8 +247,8 @@ const AdminSubscriptionForm = ({ user }) => {
                                     setSelectedSchedules([]);
                                 }}
                                 className={`w-full text-left p-4 rounded-lg transition-all ${activeOption === option.id
-                                    ? 'bg-[#EF9659] text-white shadow-md'
-                                    : 'hover:bg-gray-100'
+                                        ? 'bg-[#EF9659] text-white shadow-md'
+                                        : 'hover:bg-gray-100'
                                     }`}
                             >
                                 {option.label}
@@ -240,7 +257,7 @@ const AdminSubscriptionForm = ({ user }) => {
                     </div>
                 </div>
 
-                {/* Sección derecha - Selección de horarios */}
+                {/* Selección de horarios */}
                 <div className="flex-1 p-6 bg-gray-50">
                     <h3 className="text-lg font-semibold mb-4">Horarios asignados</h3>
 
@@ -262,8 +279,8 @@ const AdminSubscriptionForm = ({ user }) => {
                         <button
                             onClick={() => setShowScheduleOptions(!showScheduleOptions)}
                             className={`w-full py-2 px-4 text-left bg-white border-2 rounded-lg ${selectedSchedules.length === activeOption
-                                ? 'border-green-500'
-                                : 'border-red-500'
+                                    ? 'border-green-500'
+                                    : 'border-red-500'
                                 }`}
                             disabled={selectedSchedules.length === activeOption}
                         >
@@ -274,25 +291,12 @@ const AdminSubscriptionForm = ({ user }) => {
 
                         {showScheduleOptions && (
                             <div className="mt-2 border rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                                {[
-                                    "Lunes 7hs en Meridiano V°",
-                                    "Lunes 21hs en El Bosque",
-                                    "Martes 21hs en El Bosque",
-                                    "Martes 22hs en El Bosque",
-                                    "Miercoles 7hs en Meridiano V°",
-                                    "Jueves 19hs en Estación Norte (Femenino)",
-                                    "Jueves 20hs en Estación Norte (Mixto)",
-                                    "Viernes 7hs en Meridiano V°",
-                                    "Viernes 21hs en El Bosque",
-                                    "Sabado 9hs en El Bosque",
-                                    "Sabado 10hs en El Bosque",
-                                    "Sabado 11hs en El Bosque"
-                                ].map((schedule, index) => (
+                                {scheduleOptions.map((schedule, index) => (
                                     <div
                                         key={index}
                                         className={`p-3 cursor-pointer ${selectedSchedules.includes(schedule)
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'hover:bg-gray-100'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : 'hover:bg-gray-100'
                                             } ${selectedSchedules.length >= activeOption &&
                                                 !selectedSchedules.includes(schedule)
                                                 ? 'opacity-50 cursor-not-allowed'
@@ -307,8 +311,8 @@ const AdminSubscriptionForm = ({ user }) => {
                                     >
                                         <div className="flex items-center">
                                             <span className={`mr-2 ${selectedSchedules.includes(schedule)
-                                                ? 'text-blue-500'
-                                                : 'text-transparent'
+                                                    ? 'text-blue-500'
+                                                    : 'text-transparent'
                                                 }`}>
                                                 ✓
                                             </span>
@@ -330,10 +334,11 @@ const AdminSubscriptionForm = ({ user }) => {
                 </div>
             </div>
 
+            {/* Mensajes de estado */}
             {message && (
                 <div className={`mt-4 p-3 rounded-lg ${message.includes('exitosamente')
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
                     }`}>
                     {message}
                 </div>

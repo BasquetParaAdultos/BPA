@@ -67,6 +67,14 @@ function TaskPage() {
 
   return (
     <>
+      {/* Nuevo encabezado "Próximamente..." */}
+      <div className="text-center py-10 bg-[#EF9659] text-white">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">Próximamente...</h1>
+        <p className="text-xl max-w-2xl mx-auto">
+          Estamos trabajando en la implementación de nuestro sistema de pagos
+        </p>
+      </div>
+
       <section className="max-w-6xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row gap-8 items-center">
           {/* Contenido de texto - Izquierda */}
@@ -107,7 +115,7 @@ function TaskPage() {
       </section>
 
       {/* Recuadro 2 - Versión mejorada */}
-      <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden mb-8 max-w-6xl mx-auto">
         <div className="flex-1 p-8 space-y-6 border-r border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Seleccione su paquete</h2>
           <div className="space-y-2">
@@ -177,17 +185,17 @@ function TaskPage() {
               <div className="mt-2 border rounded-lg shadow-lg max-h-96 overflow-y-auto">
                 {[
                   "Lunes 7hs en Meridiano V°",
+                  "Lunes 20hs en El Bosque",
                   "Lunes 21hs en El Bosque",
                   "Martes 21hs en El Bosque",
                   "Martes 22hs en El Bosque",
-                  "Miercoles 7hs en Meridiano V°",
+                  "Miércoles 7hs en Meridiano V°",
                   "Jueves 19hs en Estación Norte (Femenino)",
                   "Jueves 20hs en Estación Norte (Mixto)",
                   "Viernes 7hs en Meridiano V°",
                   "Viernes 21hs en El Bosque",
-                  "Sabado 9hs en El Bosque",
-                  "Sabado 10hs en El Bosque",
-                  "Sabado 11hs en El Bosque"
+                  "Sábado 9hs en El Bosque",
+                  "Sábado 10:30hs en El Bosque"
                 ].map((schedule, index) => (
                   <div
                     key={index}
@@ -218,16 +226,23 @@ function TaskPage() {
             )}
           </div>
 
-          <button
-            onClick={handlePayment}
-            className="w-full py-3 px-6 bg-[#EF9659] hover:bg-[#D4874F] text-white font-semibold rounded-lg transition-colors"
-            disabled={selectedSchedules.length !== activeOption}
-          >
-            Pagar {selectedOption?.price.toLocaleString('es-AR', {
-              style: 'currency',
-              currency: 'ARS'
-            })}
-          </button>
+          {/* Botón de pago deshabilitado con mensaje */}
+          <div className="relative">
+            <button
+              onClick={handlePayment}
+              className="w-full py-3 px-6 bg-gray-400 text-white font-semibold rounded-lg transition-colors cursor-not-allowed"
+              disabled={true}
+            >
+              Próximamente...
+            </button>
+            <div className="absolute inset-0 bg-gray-800 bg-opacity-20 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">En desarrollo</span>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-center text-gray-500 text-sm">
+            El sistema de pagos estará disponible próximamente
+          </div>
         </div>
       </div>
     </>
