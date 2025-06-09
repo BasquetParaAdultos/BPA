@@ -12,7 +12,7 @@ function ProfilePage() {
     const [viewedUser, setViewedUser] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState({ 
+    const [formData, setFormData] = useState({
         phone: '',
         full_name: '',
         description: '',
@@ -40,7 +40,7 @@ function ProfilePage() {
         diabetes: false,
         disability: false,
         additional_info: ''
-     });
+    });
 
     const isViewingOtherProfile = !!userId;
     const userToDisplay = isViewingOtherProfile ? viewedUser : currentUser;
@@ -54,7 +54,8 @@ function ProfilePage() {
                 if (isViewingOtherProfile) {
                     // Cargar perfil de otro usuario
                     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/user/${userId}`, {
-                        withCredentials: true
+                        withCredentials: true,
+                        headers: { 'Content-Type': 'application/json' }
                     });
                     setViewedUser(res.data);
                 } else {
@@ -85,11 +86,11 @@ function ProfilePage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/update`, formData, {
-                withCredentials: true,
+            // Usa la instancia de axios configurada (no axios directo)
+            const response = await axios.put('/update', formData, {
                 headers: { 'Content-Type': 'application/json' }
             });
-            
+            console.log('Perfil actualizado:', response.data);
             // Actualizar datos del usuario después de editar
             await refreshUser();
             setIsEditing(false);
@@ -103,7 +104,7 @@ function ProfilePage() {
         setFormData(prev => ({ ...prev, ...newData }));
     };
 
-    if (loadingProfile || initialLoading || (isViewingOtherProfile && !viewedUser)){
+    if (loadingProfile || initialLoading || (isViewingOtherProfile && !viewedUser)) {
         return (
             <div className="max-w-2xl mx-auto p-6 text-center">
                 <p className="text-gray-600">Cargando perfil...</p>
@@ -206,7 +207,7 @@ function ProfilePage() {
                     </div>
                 )}
             </div>
-            
+
             {currentUser?.role === 'admin' && isViewingOtherProfile && (
                 <AdminSubscriptionForm user={userToDisplay} />
             )}
