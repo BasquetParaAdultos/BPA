@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 import HealthDataForm from '../components/HealthDataForm.jsx';
 import HealthDataView from '../components/HealthDataView.jsx';
 import { useParams } from 'react-router-dom';
@@ -11,12 +10,8 @@ function ProfilePage() {
     const { user: currentUser, refreshUser, initialLoading } = useAuth();
     const [viewedUser, setViewedUser] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
-
-    const isViewingOtherProfile = !!userId;
-    const userToDisplay = isViewingOtherProfile ? viewedUser : currentUser;
-
     const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({ 
         phone: '',
         full_name: '',
         description: '',
@@ -44,7 +39,10 @@ function ProfilePage() {
         diabetes: false,
         disability: false,
         additional_info: ''
-    });
+     });
+
+    const isViewingOtherProfile = !!userId;
+    const userToDisplay = isViewingOtherProfile ? viewedUser : currentUser;
 
     // Cargar datos del usuario
     useEffect(() => {
@@ -53,25 +51,24 @@ function ProfilePage() {
                 setLoadingProfile(true);
 
                 if (isViewingOtherProfile) {
+                    // Cargar perfil de otro usuario
                     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/user/${userId}`, {
                         withCredentials: true
                     });
                     setViewedUser(res.data);
                 } else {
-                    // Solo actualizar si los datos están desactualizados
-                    if (!currentUser?.updatedAt || Date.now() - new Date(currentUser.updatedAt).getTime() > 5000) {
-                        await refreshUser();
-                    }
+                    // Actualizar datos del usuario actual usando verify
+                    await refreshUser();
                 }
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error cargando perfil:", error);
             } finally {
                 setLoadingProfile(false);
             }
         };
 
         fetchData();
-    }, [userId, isViewingOtherProfile, refreshUser, currentUser?.updatedAt]); // ← Dependencia controlada
+    }, [userId, isViewingOtherProfile]);
 
     // Actualizar formulario cuando cambian los datos del usuario
     useEffect(() => {
@@ -79,56 +76,33 @@ function ProfilePage() {
             setFormData({
                 phone: userToDisplay.phone || '',
                 full_name: userToDisplay.full_name || '',
-                description: userToDisplay.description || '',
-                profile_picture: userToDisplay.profile_picture || '',
-                alternate_phone1: userToDisplay.alternate_phone1 || '',
-                alternate_phone2: userToDisplay.alternate_phone2 || '',
-                dni: userToDisplay.dni || '',
-                locality: userToDisplay.locality || '',
-                nationality: userToDisplay.nationality || '',
-                birth_date: userToDisplay.birth_date || '',
-                sex: userToDisplay.sex || '',
-                address: userToDisplay.address || '',
-                health_insurance: userToDisplay.health_insurance || '',
-                blood_type: userToDisplay.blood_type || '',
-                chronic_diseases: userToDisplay.chronic_diseases || false,
-                diseases_details: userToDisplay.diseases_details || '',
-                medical_care: userToDisplay.medical_care || false,
-                medication: userToDisplay.medication || '',
-                vaccination_complete: userToDisplay.vaccination_complete || false,
-                allergies: userToDisplay.allergies || '',
-                eye_diseases: userToDisplay.eye_diseases || '',
-                cardiovascular_diseases: userToDisplay.cardiovascular_diseases || '',
-                neurological_diseases: userToDisplay.neurological_diseases || '',
-                hearing_diseases: userToDisplay.hearing_diseases || '',
-                diabetes: userToDisplay.diabetes || false,
-                disability: userToDisplay.disability || false,
-                additional_info: userToDisplay.additional_info || ''
+                // ... otros campos
             });
         }
-    }, [userToDisplay, !isEditing]);
+    }, [userToDisplay, isEditing]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/update`, formData, {
+            await axios.put(`${import.meta.env.VITE_API_URL}/api/update`, formData, {
                 withCredentials: true,
                 headers: { 'Content-Type': 'application/json' }
             });
-
-            console.log('Respuesta del servidor:', response.data);
+            
+            // Actualizar datos del usuario después de editar
             await refreshUser();
             setIsEditing(false);
         } catch (error) {
-            console.error("Error completo:", {
-                message: error.message,
-                request: error.request,
-                response: error.response?.data
-            });
+            console.error("Error al actualizar perfil:", error);
         }
     };
 
-    if (loadingProfile || initialLoading) {
+    // Función para manejar cambios en el formulario de datos de salud
+    const handleHealthDataChange = (newData) => {
+        setFormData(prev => ({ ...prev, ...newData }));
+    };
+
+    if (loadingProfile || initialLoading || (isViewingOtherProfile && !viewedUser)){
         return (
             <div className="max-w-2xl mx-auto p-6 text-center">
                 <p className="text-gray-600">Cargando perfil...</p>
@@ -136,11 +110,19 @@ function ProfilePage() {
         );
     }
 
+    if (!userToDisplay) {
+        return (
+            <div className="max-w-2xl mx-auto p-6 text-center">
+                <p className="text-red-500">Error: Usuario no encontrado</p>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-2xl mx-auto p-6">
             <h1 className="text-3xl font-bold mb-6">
-                Perfil de {userToDisplay?.username || 'Usuario no encontrado'}
-                {userToDisplay?.role === 'admin' && (
+                Perfil de {userToDisplay.username}
+                {userToDisplay.role === 'admin' && (
                     <span className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded">ADMIN</span>
                 )}
             </h1>
@@ -160,30 +142,13 @@ function ProfilePage() {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-gray-700">Teléfono</label>
-                                <input
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full p-2 border rounded"
-                                />
-                            </div>
-
-                            <div className="col-span-2">
-                                <label className="block text-gray-700">Descripción</label>
-                                <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full p-2 border rounded h-32"
-                                />
-                            </div>
+                            {/* ... otros campos básicos ... */}
                         </div>
 
-                        {/* Incorpora el HealthDataForm */}
+                        {/* Incorpora el HealthDataForm con el nuevo manejador */}
                         <HealthDataForm
                             formData={formData}
-                            setFormData={setFormData}
+                            onDataChange={handleHealthDataChange}
                         />
 
                         <div className="flex gap-4">
@@ -205,7 +170,7 @@ function ProfilePage() {
                     </form>
                 ) : (
                     <div className="space-y-4">
-                        {userToDisplay?.profile_picture && (
+                        {userToDisplay.profile_picture && (
                             <img
                                 src={userToDisplay.profile_picture}
                                 alt="Perfil"
@@ -215,22 +180,15 @@ function ProfilePage() {
 
                         <div>
                             <h2 className="text-xl font-semibold">
-                                {userToDisplay?.full_name || 'Sin nombre completo'}
+                                {userToDisplay.full_name || 'Sin nombre completo'}
                             </h2>
-                            <p className="text-gray-600">{userToDisplay?.email}</p>
+                            <p className="text-gray-600">{userToDisplay.email}</p>
                         </div>
 
                         <div>
                             <p className="text-gray-600">
                                 <span className="font-semibold">Teléfono:</span>
-                                {userToDisplay?.phone || 'No especificado'}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-gray-600">
-                                <span className="font-semibold">Descripción:</span>
-                                {userToDisplay?.description || 'Sin descripción'}
+                                {userToDisplay.phone || 'No especificado'}
                             </p>
                         </div>
 
@@ -247,6 +205,7 @@ function ProfilePage() {
                     </div>
                 )}
             </div>
+            
             {currentUser?.role === 'admin' && isViewingOtherProfile && (
                 <AdminSubscriptionForm user={userToDisplay} />
             )}

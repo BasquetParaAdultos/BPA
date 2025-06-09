@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
 
     const refreshUser = useCallback(async () => {
         try {
-            const res = await axios.get('/profile', {
+            const res = await axios.get('/verify', {
                 headers: { 'Cache-Control': 'no-store' } // Evitar caché
             });
             setUser(res.data);

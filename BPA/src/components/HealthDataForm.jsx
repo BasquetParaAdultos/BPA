@@ -1,17 +1,24 @@
 import React from 'react';
 
-const HealthDataForm = ({ formData, setFormData }) => {
+const HealthDataForm = ({ formData, onDataChange }) => {
   // Función para manejar cambios en campos condicionales
   const handleConditionalChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-      // Resetear campos dependientes si se cambia a "No"
-      ...(value === false && {
-        [`${field}_details`]: '',
-        [`${field}_info`]: ''
-      })
-    }));
+    const changes = {
+      [field]: value
+    };
+    
+    // Resetear campos dependientes si se cambia a "No"
+    if (value === false) {
+      changes[`${field}_details`] = '';
+      changes[`${field}_info`] = '';
+    }
+    
+    onDataChange(changes);
+  };
+
+  // Manejar cambios en campos normales
+  const handleChange = (name, value) => {
+    onDataChange({ [name]: value });
   };
 
   // Componente reutilizable para campos Sí/No
@@ -40,7 +47,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="tel"
               value={formData.alternate_phone1}
-              onChange={(e) => setFormData({...formData, alternate_phone1: e.target.value})}
+              onChange={(e) => handleChange('alternate_phone1', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -50,7 +57,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="tel"
               value={formData.alternate_phone2}
-              onChange={(e) => setFormData({...formData, alternate_phone2: e.target.value})}
+              onChange={(e) => handleChange('alternate_phone2', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -60,7 +67,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="text"
               value={formData.dni}
-              onChange={(e) => setFormData({...formData, dni: e.target.value})}
+              onChange={(e) => handleChange('dni', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -70,7 +77,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="text"
               value={formData.locality}
-              onChange={(e) => setFormData({...formData, locality: e.target.value})}
+              onChange={(e) => handleChange('locality', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -80,7 +87,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="text"
               value={formData.nationality}
-              onChange={(e) => setFormData({...formData, nationality: e.target.value})}
+              onChange={(e) => handleChange('nationality', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -93,8 +100,8 @@ const HealthDataForm = ({ formData, setFormData }) => {
               onChange={(e) => {
                 const dateString = e.target.value;
                 const isoDate = dateString ? new Date(dateString).toISOString() : null;
-                setFormData({...formData, birth_date: isoDate});
-            }}
+                handleChange('birth_date', isoDate);
+              }}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -103,7 +110,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <label className="block text-gray-700">Sexo</label>
             <select
               value={formData.sex}
-              onChange={(e) => setFormData({...formData, sex: e.target.value})}
+              onChange={(e) => handleChange('sex', e.target.value)}
               className="w-full p-2 border rounded"
             >
               <option value="">Seleccionar</option>
@@ -118,7 +125,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="text"
               value={formData.address}
-              onChange={(e) => setFormData({...formData, address: e.target.value})}
+              onChange={(e) => handleChange('address', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -128,7 +135,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="text"
               value={formData.health_insurance}
-              onChange={(e) => setFormData({...formData, health_insurance: e.target.value})}
+              onChange={(e) => handleChange('health_insurance', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -137,7 +144,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <label className="block text-gray-700">Grupo Sanguíneo</label>
             <select
               value={formData.blood_type}
-              onChange={(e) => setFormData({...formData, blood_type: e.target.value})}
+              onChange={(e) => handleChange('blood_type', e.target.value)}
               className="w-full p-2 border rounded"
             >
               <option value="">Seleccionar</option>
@@ -160,7 +167,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
               <input
                 type="text"
                 value={formData.diseases_details}
-                onChange={(e) => setFormData({...formData, diseases_details: e.target.value})}
+                onChange={(e) => handleChange('diseases_details', e.target.value)}
                 className="w-full p-2 border rounded"
               />
             </div>
@@ -173,20 +180,19 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <input
               type="text"
               value={formData.medication}
-              onChange={(e) => setFormData({...formData, medication: e.target.value})}
+              onChange={(e) => handleChange('medication', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
 
           <YesNoField label="¿Tiene el calendario de vacunación completo?" field="vaccination_complete" />
 
-          {/* Repetir patrón para otros campos... */}
           <div>
             <label className="block text-gray-700">Alergias</label>
             <input
               type="text"
               value={formData.allergies}
-              onChange={(e) => setFormData({...formData, allergies: e.target.value})}
+              onChange={(e) => handleChange('allergies', e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>
@@ -198,7 +204,7 @@ const HealthDataForm = ({ formData, setFormData }) => {
             <label className="block text-gray-700">Información adicional importante</label>
             <textarea
               value={formData.additional_info}
-              onChange={(e) => setFormData({...formData, additional_info: e.target.value})}
+              onChange={(e) => handleChange('additional_info', e.target.value)}
               className="w-full p-2 border rounded h-32"
               placeholder="Información relevante para emergencias..."
             />

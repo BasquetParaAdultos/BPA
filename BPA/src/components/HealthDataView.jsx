@@ -4,11 +4,27 @@ const HealthDataView = ({ user }) => {
   // Función para formatear valores booleanos
   const formatYesNo = (value) => value ? 'Sí' : 'No';
   
-  // Función para formatear fecha
+  // Función para formatear fecha (mejorada)
   const formatDate = (dateString) => {
     if (!dateString) return 'No especificado';
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('es-ES', options);
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date)) return 'Fecha inválida';
+      
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('es-ES', options);
+    } catch {
+      return 'Fecha inválida';
+    }
+  };
+
+  // Función para mostrar campos condicionales
+  const renderConditionalField = (condition, label, value) => {
+    return condition && value ? (
+      <p className="text-gray-600">
+        <span className="font-semibold">{label}:</span> {value}
+      </p>
+    ) : null;
   };
 
   return (
@@ -17,65 +33,28 @@ const HealthDataView = ({ user }) => {
       <div className="border-t pt-6">
         <h2 className="text-xl font-bold mb-4">Datos Generales</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Teléfono alternativo 1:</span> {user?.alternate_phone1 || 'No especificado'}
-            </p>
-          </div>
-          
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Teléfono alternativo 2:</span> {user?.alternate_phone2 || 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">DNI:</span> {user?.dni || 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Localidad:</span> {user?.locality || 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Nacionalidad:</span> {user?.nationality || 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Fecha de Nacimiento:</span> {formatDate(user?.birth_date)}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Sexo:</span> {user?.sex ? user.sex.charAt(0).toUpperCase() + user.sex.slice(1) : 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Domicilio:</span> {user?.address || 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Obra Social:</span> {user?.health_insurance || 'No especificado'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Grupo Sanguíneo:</span> {user?.blood_type || 'No especificado'}
-            </p>
-          </div>
+          {[
+            { label: 'Teléfono alternativo 1', value: user?.alternate_phone1 },
+            { label: 'Teléfono alternativo 2', value: user?.alternate_phone2 },
+            { label: 'DNI', value: user?.dni },
+            { label: 'Localidad', value: user?.locality },
+            { label: 'Nacionalidad', value: user?.nationality },
+            { label: 'Fecha de Nacimiento', value: formatDate(user?.birth_date) },
+            { 
+              label: 'Sexo', 
+              value: user?.sex ? user.sex.charAt(0).toUpperCase() + user.sex.slice(1) : null 
+            },
+            { label: 'Domicilio', value: user?.address },
+            { label: 'Obra Social', value: user?.health_insurance },
+            { label: 'Grupo Sanguíneo', value: user?.blood_type }
+          ].map((field, index) => (
+            <div key={index}>
+              <p className="text-gray-600">
+                <span className="font-semibold">{field.label}:</span> 
+                {field.value || ' No especificado'}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -87,10 +66,10 @@ const HealthDataView = ({ user }) => {
             <span className="font-semibold">Enfermedades crónicas:</span> {formatYesNo(user?.chronic_diseases)}
           </p>
           
-          {user?.chronic_diseases && (
-            <p className="text-gray-600">
-              <span className="font-semibold">Detalles enfermedades:</span> {user?.diseases_details}
-            </p>
+          {renderConditionalField(
+            user?.chronic_diseases, 
+            'Detalles enfermedades', 
+            user?.diseases_details
           )}
 
           <p className="text-gray-600">
@@ -117,10 +96,10 @@ const HealthDataView = ({ user }) => {
             <span className="font-semibold">Discapacidad:</span> {formatYesNo(user?.disability)}
           </p>
 
-          {user?.additional_info && (
-            <p className="text-gray-600">
-              <span className="font-semibold">Información adicional:</span> {user.additional_info}
-            </p>
+          {renderConditionalField(
+            true, // Siempre mostrar si tiene valor
+            'Información adicional', 
+            user?.additional_info
           )}
         </div>
       </div>
