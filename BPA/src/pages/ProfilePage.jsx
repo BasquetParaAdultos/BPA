@@ -53,7 +53,7 @@ function ProfilePage() {
 
                 if (isViewingOtherProfile) {
                     // Cargar perfil de otro usuario
-                    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/user/${userId}`, {
+                    const res = await axiosInstance.get(`admin/user/${userId}`, {
                         withCredentials: true,
                         headers: { 'Content-Type': 'application/json' }
                     });
