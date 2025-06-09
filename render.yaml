@@ -1,0 +1,14 @@
+# render.yaml
+services:
+  - type: web
+    name: mi-backend-bpa
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://usuario:contraseña@cluster0.xxxxx.mongodb.net/nombre_db?retryWrites=true&w=majority
+      - key: PORT
+        value: 3001
+      - key: JWT_SECRET
+        value: "Pomelo meridiano V BPA"
