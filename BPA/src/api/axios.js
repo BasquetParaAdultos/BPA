@@ -10,7 +10,7 @@ const instance = axios.create({
   timeout: 15000, // 15 segundos de timeout
 });
 
-// Interceptor para solicitudes
+// Interceptor para solicitudes (se mantiene igual)
 instance.interceptors.request.use(config => {
   config.withCredentials = true;
   return config;
@@ -18,7 +18,7 @@ instance.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Interceptor para manejar errores globales (MEJORADO)
+// Interceptor para manejar errores globales (CORREGIDO)
 instance.interceptors.response.use(
   response => response,
   error => {
@@ -31,21 +31,13 @@ instance.interceptors.response.use(
           url: error.response.config.url
         });
         
-        // Manejar error 401 específicamente
+        // Manejar error 401 específicamente (CORRECCIÓN APLICADA)
         if (error.response.status === 401) {
-          // Evitar bucles: no redirigir si ya estamos en login
-          if (window.location.pathname !== '/login') {
-            // 1. Limpiar la cookie token en el frontend
-            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.onrender.com;';
-            
-            // 2. Limpiar localStorage
-            localStorage.removeItem('authState');
-            
-            // 3. Redirigir con retraso para evitar conflictos
-            setTimeout(() => {
-              window.location.href = '/login';
-            }, 100);
-          }
+          // Solo limpiar el estado local, no redirigir aquí
+          localStorage.removeItem('authState');
+          
+          // Limpiar cookie del frontend (aunque es httpOnly, esto fuerza la expiración en el cliente)
+          document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
       } else if (error.request) {
         console.error("Error de red:", error.request);

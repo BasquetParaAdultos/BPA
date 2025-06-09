@@ -7,12 +7,6 @@ function ProtectedRoute() {
     const location = useLocation();
     const currentPath = location.pathname;
 
-    // Solo verificar autenticación si aún está en carga inicial
-    useEffect(() => {
-        if (initialLoading) {
-            checkAuth();
-        }
-    }, [initialLoading, location.pathname]);
 
     if (initialLoading) return <h1>Cargando...</h1>;
     

@@ -5,13 +5,16 @@ import jwt from 'jsonwebtoken'
 
 
 const setAuthCookie = (res, token) => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // ✅ Configuración corregida para producción
     res.cookie('token', token, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 semana
-        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined,
-        path: '/' // ¡Asegúrate de incluir esto!
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        domain: isProduction ? '.bpa-ftmu.onrender.com' : undefined,
+        path: '/'
     });
 };
 
@@ -105,7 +108,7 @@ export const logout = (req, res) => {
         secure: true,
         sameSite: 'none',
         expires: new Date(0),
-        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined,
+        domain: process.env.NODE_ENV === 'production' ? '.bpa-ftmu.onrender.com' : undefined,
         path: '/'
     });
     res.status(200).json({ message: 'Sesión cerrada' });

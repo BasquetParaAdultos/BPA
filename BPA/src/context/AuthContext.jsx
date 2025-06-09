@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
         const savedAuth = localStorage.getItem('authState');
         return savedAuth ? JSON.parse(savedAuth).isAuthenticated : false;
     });
-    
+
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -115,50 +115,51 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    // En checkAuth
     const checkAuth = useCallback(async () => {
-        try {
-            const res = await axios.get('/verify');
-
-            if (res.data.authenticated) {
-                setUser({
-                    ...res.data.user,
-                    id: res.data.user.id || res.data.user._id
-                });
-                setIsAuthenticated(true);
-            } else {
-                setIsAuthenticated(false);
-                setUser(null);
-            }
-        } catch (error) {
+    try {
+        const res = await axios.get('/verify');
+        
+        // Asegúrate que el backend devuelva una estructura clara
+        if (res.data.user && res.data.authenticated) {
+            setUser({
+                ...res.data.user,
+                id: res.data.user.id || res.data.user._id
+            });
+            setIsAuthenticated(true);
+        } else {
+            // Limpiar estados si no está autenticado
             setIsAuthenticated(false);
             setUser(null);
-            console.error("Error en verificación:", error);
-        } finally {
-            setLoading(false);
-            setInitialLoading(false); // Importante!
         }
-    }, []);
-
-    // Verificar autenticación solo una vez al montar
-    useEffect(() => {
-        if (initialLoading) {
-            checkAuth();
+    } catch (error) {
+        // Manejo específico de error 401
+        if (error.response?.status === 401) {
+            // Limpiar cookie inválida
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
-    }, [initialLoading]);
+        setIsAuthenticated(false);
+        setUser(null);
+    } finally {
+        setInitialLoading(false);
+        setLoading(false);
+    }
+}, []);
 
-
-    // verificacion de cookie
+    // ✅ Usa solo este efecto para verificación inicial
     useEffect(() => {
-        const verifyCookie = async () => {
+        const verifyAuth = async () => {
+            // Solo verificar si hay token presente
             const hasToken = document.cookie.includes('token');
-            if (hasToken && !isAuthenticated) {
+            if (hasToken) {
                 await checkAuth();
+            } else {
+                setInitialLoading(false);
+                setLoading(false);
             }
         };
 
-        verifyCookie();
-    }, []);
+        verifyAuth();
+    }, []); // Solo al montar el componente
 
 
     // Manejo centralizado de errores de autenticación
