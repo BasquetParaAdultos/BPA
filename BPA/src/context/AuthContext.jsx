@@ -86,22 +86,52 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const refreshUser = useCallback(async () => {
-        try {
-            const res = await axios.get('/verify', {
-                headers: { 'Cache-Control': 'no-store' } // Evitar caché
-            });
-            setUser(res.data);
-            return res.data;
-        } catch (error) {
-            console.error("Error actualizando usuario:", error.response?.data);
-            // Si no podemos refrescar, consideramos que la sesión es inválida
-            if (error.response?.status === 401) {
-                logout();
-            }
-            throw error;
-        }
-    }, []);
+    // Función para actualizar parcialmente el usuario
+  const updateUser = (newData) => {
+    setUser(prev => {
+      const updatedUser = {...prev, ...newData};
+      
+      // Actualizar localStorage
+      const authState = {
+        isAuthenticated: true,
+        user: updatedUser
+      };
+      localStorage.setItem('authState', JSON.stringify(authState));
+      
+      return updatedUser;
+    });
+  };
+
+   const refreshUser = useCallback(async () => {
+  try {
+    const res = await axios.get('/verify');
+    
+    if (res.data.user) {
+      const updatedUser = {
+        ...res.data.user,
+        id: res.data.user.id || res.data.user._id
+      };
+      
+      // Actualizar estado y localStorage
+      setUser(updatedUser);
+      
+      const authState = {
+        isAuthenticated: true,
+        user: updatedUser
+      };
+      localStorage.setItem('authState', JSON.stringify(authState));
+      
+      return updatedUser;
+    }
+    throw new Error('Usuario no encontrado en respuesta');
+  } catch (error) {
+    console.error("Error actualizando usuario:", error);
+    if (error.response?.status === 401) {
+      logout();
+    }
+    throw error;
+  }
+}, [logout]);
 
     const checkAuth = useCallback(async () => {
     try {
@@ -184,6 +214,7 @@ export const AuthProvider = ({ children }) => {
                 logout,
                 refreshUser,
                 checkAuth,
+                updateUser,
                 initialLoading,
                 loading,
                 user,

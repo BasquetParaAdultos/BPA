@@ -8,7 +8,7 @@ import axios from '../api/axios';
 
 function ProfilePage() {
     const { userId } = useParams();
-    const { user: currentUser, refreshUser, initialLoading } = useAuth();
+    const { user: currentUser, refreshUser, initialLoading, updateUser } = useAuth();
     const [viewedUser, setViewedUser] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -89,7 +89,7 @@ function ProfilePage() {
             });
             console.log('Perfil actualizado:', response.data);
             // Actualizar datos del usuario después de editar
-            await refreshUser();
+            updateUser(response.data);
             setIsEditing(false);
         } catch (error) {
             console.error("Error al actualizar perfil:", error);

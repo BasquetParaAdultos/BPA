@@ -34,6 +34,9 @@ const HealthDataView = ({ user }) => {
         <h2 className="text-xl font-bold mb-4">Datos Generales</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
+            { label: 'Teléfono', value: user?.phone },
+            { label: 'Nombre completo', value: user?.full_name },
+            { label: 'Descripción', value: user?.description },
             { label: 'Teléfono alternativo 1', value: user?.alternate_phone1 },
             { label: 'Teléfono alternativo 2', value: user?.alternate_phone2 },
             { label: 'DNI', value: user?.dni },
@@ -89,6 +92,22 @@ const HealthDataView = ({ user }) => {
           </p>
 
           <p className="text-gray-600">
+            <span className="font-semibold">Enfermedades oculares:</span> {user?.eye_diseases || 'Ninguna'}
+          </p>
+
+          <p className="text-gray-600">
+            <span className="font-semibold">Enfermedades cardiovasculares:</span> {user?.cardiovascular_diseases || 'Ninguna'}
+          </p>
+
+          <p className="text-gray-600">
+            <span className="font-semibold">Enfermedades neurológicas:</span> {user?.neurological_diseases || 'Ninguna'}
+          </p>
+
+          <p className="text-gray-600">
+            <span className="font-semibold">Enfermedades auditivas:</span> {user?.hearing_diseases || 'Ninguna'}
+          </p>
+
+          <p className="text-gray-600">
             <span className="font-semibold">Diabetes:</span> {formatYesNo(user?.diabetes)}
           </p>
 
@@ -97,7 +116,7 @@ const HealthDataView = ({ user }) => {
           </p>
 
           {renderConditionalField(
-            true, // Siempre mostrar si tiene valor
+            true,
             'Información adicional', 
             user?.additional_info
           )}
