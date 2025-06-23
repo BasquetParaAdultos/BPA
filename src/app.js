@@ -16,6 +16,13 @@ import paymentRoutes from "./routes/payment.routes.js";
 
 const app = express()
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString() 
+  });
+});
+
 /// Configuración de CORS mejorada
 const corsOptions = {
   origin: function (origin, callback) {
