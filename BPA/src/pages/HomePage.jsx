@@ -1,8 +1,21 @@
 import React from "react";
 import banner from "/images/home/BannerInicioBPA2.jpg";
+import { useNavigate } from "react-router-dom";
 
 
 function HomePage() {
+    const navigate = useNavigate();
+
+    const scrollToContact = () => {
+    navigate("#contactUs");  // Actualiza la URL
+    setTimeout(() => {       // Pequeño delay para asegurar el renderizado
+      const element = document.getElementById("contactUs");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 10);
+  };
+
     return (
         <div>
             {/* Hero Section */}
@@ -42,8 +55,8 @@ function HomePage() {
                         > ¡Te esperamos!</p>
 
                         {/* Botón mejorado */}
-                        <a
-                            href="#contactUs"
+                        <button
+                            onClick={scrollToContact}
                             className="inline-block mt-6 px-8 py-3 md:px-10 md:py-4
                 bg-[#EF9659] text-white font-bold rounded-full 
                 hover:bg-[#EF9659] transform hover:scale-105 
@@ -51,7 +64,7 @@ function HomePage() {
                 border-2
                 [text-shadow:_1px_1px_0_#000]">
                             Conocer más
-                        </a>
+                        </button>   
                     </div>
                 </div>
             </div>

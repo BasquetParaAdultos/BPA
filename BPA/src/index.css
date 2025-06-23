@@ -13,6 +13,10 @@ body {
     to { opacity: 1; }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* Para los íconos */
 .text-green-500 { color: #10B981; }
 .text-red-500 { color: #EF4444; }
