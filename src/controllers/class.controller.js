@@ -5,92 +5,96 @@ import { horariosbpa } from "../config/schedules.js";
 
 export const getClasses = async (req, res) => {
   try {
-    const { userId, page = 1, limit = 12 } = req.query;
-    
-    if (req.user.isAdmin) {
-      const currentDate = new Date();
-      
-      // 1. Calcular semana actual (DOMINGO a SÁBADO)
-      const getCurrentWeekRange = () => {
-        const start = new Date(currentDate);
-        start.setDate(currentDate.getDate() - currentDate.getDay()); // Domingo
-        start.setHours(0, 0, 0, 0);
-        
-        const end = new Date(start);
-        end.setDate(start.getDate() + 6); // Sábado
-        end.setHours(23, 59, 59, 999);
-        
-        return { start, end };
-      };
-
-      // 2. Calcular semana objetivo según paginación
-      const { start: currentWeekStart, end: currentWeekEnd } = getCurrentWeekRange();
-      const weeksAgo = (parseInt(page) - 1);
-      const targetWeekStart = new Date(currentWeekStart);
-      targetWeekStart.setDate(currentWeekStart.getDate() - (7 * weeksAgo));
-      
-      const targetWeekEnd = new Date(targetWeekStart);
-      targetWeekEnd.setDate(targetWeekStart.getDate() + 6);
-      targetWeekEnd.setHours(23, 59, 59, 999);
-
-      // 3. Obtener SOLO clases pasadas o de la semana en curso
-      const classes = await Class.find({
-        date: { 
-          $gte: targetWeekStart,
-          $lte: Math.min(targetWeekEnd, currentWeekEnd) // No incluir futuros
-        }
-      }).populate('attendees.user', 'username email');
-
-      // 4. Calcular total de páginas REALES (solo hasta semana actual)
-      const earliestClass = await Class.findOne().sort({ date: 1 });
-      const totalWeeks = earliestClass 
-        ? Math.ceil(
-            (currentWeekStart - earliestClass.date) / 
-            (7 * 24 * 60 * 60 * 1000)
-          ) + 1
-        : 1;
-
-      // 5. Ordenar clases según horariosbpa
-      const scheduleOrder = horariosbpa.reduce((acc, item, index) => 
-        ({ ...acc, [item]: index }), {});
-
-      const sortedClasses = classes.sort((a, b) => 
-        scheduleOrder[a.schedule] - scheduleOrder[b.schedule]
-      );
-
-      return res.status(200).json({
-        classes: sortedClasses,
-        totalPages: Math.max(1, totalWeeks),
-        currentWeek: {
-          start: targetWeekStart.toLocaleDateString('es-AR'),
-          end: targetWeekEnd.toLocaleDateString('es-AR')
-        }
-      });
-    }
+    const { page = 1, limit = 12 } = req.query;
+    const now = new Date();
 
     // Lógica para USUARIOS NORMALES
-    let query = {};
-    if (userId) {
-      const user = await User.findById(userId);
+    if (!req.user.isAdmin) {
+      const user = await User.findById(req.user.id);
       
-      if (!user?.subscription?.active || new Date(user.subscription.expiresAt) <= new Date()) {
+      // Validar suscripción completa (activa, dentro de fechas válidas)
+      if (!user?.subscription?.active || 
+          !user.subscription.startDate ||
+          !user.subscription.expiresAt ||
+          new Date(user.subscription.startDate) > now ||
+          new Date(user.subscription.expiresAt) < now) {
         return res.status(403).json([]);
       }
 
-      query = {
+      // Filtro preciso por horarios y fechas válidas
+      const classes = await Class.find({
         schedule: { $in: user.subscription.selectedSchedules },
-        date: {
-          $gte: user.subscription.startDate || new Date(0),
-          $lte: user.subscription.expiresAt
+        date: { 
+          $gte: new Date(Math.max(now, new Date(user.subscription.startDate))),
+          $lte: new Date(user.subscription.expiresAt)
         }
-      };
-    }
-
-    const classes = await Class.find(query)
+      })
       .sort({ date: 1 })
       .populate('attendees.user', 'username email');
 
-    res.status(200).json(classes);
+      return res.status(200).json(classes);
+    }
+
+    // Lógica para ADMINISTRADORES (manteniendo tu implementación original)
+    const currentDate = new Date();
+      
+    // 1. Calcular semana actual (DOMINGO a SÁBADO)
+    const getCurrentWeekRange = () => {
+      const start = new Date(currentDate);
+      start.setDate(currentDate.getDate() - currentDate.getDay());
+      start.setHours(0, 0, 0, 0);
+      
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      
+      return { start, end };
+    };
+
+    // 2. Calcular semana objetivo según paginación
+    const { start: currentWeekStart, end: currentWeekEnd } = getCurrentWeekRange();
+    const weeksAgo = (parseInt(page) - 1);
+    const targetWeekStart = new Date(currentWeekStart);
+    targetWeekStart.setDate(currentWeekStart.getDate() - (7 * weeksAgo));
+    
+    const targetWeekEnd = new Date(targetWeekStart);
+    targetWeekEnd.setDate(targetWeekStart.getDate() + 6);
+    targetWeekEnd.setHours(23, 59, 59, 999);
+
+    // 3. Obtener SOLO clases pasadas o de la semana en curso
+    const classes = await Class.find({
+      date: { 
+        $gte: targetWeekStart,
+        $lte: Math.min(targetWeekEnd, currentWeekEnd)
+      }
+    }).populate('attendees.user', 'username email');
+
+    // 4. Calcular total de páginas REALES (solo hasta semana actual)
+    const earliestClass = await Class.findOne().sort({ date: 1 });
+    const totalWeeks = earliestClass 
+      ? Math.ceil(
+          (currentWeekStart - earliestClass.date) / 
+          (7 * 24 * 60 * 60 * 1000)
+        ) + 1
+      : 1;
+
+    // 5. Ordenar clases según horariosbpa
+    const scheduleOrder = horariosbpa.reduce((acc, item, index) => 
+      ({ ...acc, [item]: index }), {});
+
+    const sortedClasses = classes.sort((a, b) => 
+      scheduleOrder[a.schedule] - scheduleOrder[b.schedule]
+    );
+
+    return res.status(200).json({
+      classes: sortedClasses,
+      totalPages: Math.max(1, totalWeeks),
+      currentWeek: {
+        start: targetWeekStart.toLocaleDateString('es-AR'),
+        end: targetWeekEnd.toLocaleDateString('es-AR')
+      }
+    });
+
   } catch (error) {
     console.error("Error en getClasses:", error);
     res.status(500).json(req.user.isAdmin ? { error: error.message } : []);
@@ -101,7 +105,11 @@ export const updateSelectedSchedules = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { $set: { selectedSchedules: req.body.schedules } },
+      {
+        $set: {
+          "subscription.selectedSchedules": req.body.schedules
+        }
+      },
       { new: true }
     );
     res.status(200).json(user);

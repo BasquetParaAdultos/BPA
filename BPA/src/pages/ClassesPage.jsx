@@ -1,30 +1,44 @@
 import { useEffect, useState } from 'react';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom'; // Asegúrate de importar Link
 
 function ClassesPage() {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Función para verificar validez de la suscripción
+  // Función mejorada para verificar validez de la suscripción
   const isSubscriptionValid = () => {
-    return user?.subscription?.active &&
-      new Date(user.subscription.expiresAt) > new Date();
+    if (!user?.subscription?.active) return false;
+    
+    const now = new Date();
+    const startDate = new Date(user.subscription.startDate);
+    const expiresAt = new Date(user.subscription.expiresAt);
+    
+    return startDate <= now && now <= expiresAt;
   };
 
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        if (!isSubscriptionValid()) {
+        setLoading(true);
+        
+        // Verificación completa de suscripción
+        if (!user || !isSubscriptionValid()) {
           setClasses([]);
           setLoading(false);
           return;
         }
 
-        // ✅ Usar instancia configurada de Axios
         const res = await axios.get('/classes');
-        setClasses(res.data);
+        
+        // Filtrado adicional en frontend como medida de seguridad
+        const filteredClasses = res.data.filter(cls => 
+          user.subscription.selectedSchedules.includes(cls.schedule)
+        );
+        
+        setClasses(filteredClasses);
       } catch (error) {
         console.error("Error:", error);
         setClasses([]);
@@ -38,7 +52,6 @@ function ClassesPage() {
 
   const handleAttendance = async (classId, attended) => {
     try {
-      // ✅ Usar instancia configurada de Axios
       const res = await axios.put(
         `/classes/${classId}/attendance`,
         { attended }
@@ -81,26 +94,45 @@ function ClassesPage() {
     );
   }
 
+  // Verificación mejorada de suscripción
   if (!isSubscriptionValid()) {
+    const now = new Date();
+    const startDate = user?.subscription?.startDate ? new Date(user.subscription.startDate) : null;
+    const expiresAt = user?.subscription?.expiresAt ? new Date(user.subscription.expiresAt) : null;
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">
             {user?.subscription?.active
-              ? "Tu suscripción ha expirado"
+              ? (expiresAt && expiresAt < now 
+                  ? "Tu suscripción ha expirado" 
+                  : startDate && startDate > now
+                    ? "Tu suscripción aún no ha comenzado"
+                    : "Problema con tu suscripción")
               : "Acceso restringido"}
           </h2>
           
           <div className="mb-6">
             <p className="text-gray-600 mb-3">
               {user?.subscription?.active
-                ? "Renueva tu suscripción para seguir accediendo a las clases."
+                ? (expiresAt && expiresAt < now
+                    ? "Renueva tu suscripción para seguir accediendo a las clases."
+                    : startDate && startDate > now
+                      ? `Tu suscripción comienza el ${startDate.toLocaleDateString('es-AR')}`
+                      : "Por favor contacta al soporte para resolver este problema.")
                 : "Necesitas una suscripción activa para ver las clases."}
             </p>
             
-            {user?.subscription?.expiresAt && (
+            {startDate && (
               <p className="text-gray-600">
-                Fecha de expiración: {new Date(user.subscription.expiresAt).toLocaleDateString('es-AR')}
+                Inicio: {startDate.toLocaleDateString('es-AR')}
+              </p>
+            )}
+            
+            {expiresAt && (
+              <p className="text-gray-600">
+                Expira: {expiresAt.toLocaleDateString('es-AR')}
               </p>
             )}
           </div>
@@ -126,6 +158,9 @@ function ClassesPage() {
             Clases disponibles: <span className="font-bold">{user.subscription.classesAllowed}</span>
           </p>
           <p className="text-blue-800">
+            Inicio: {new Date(user.subscription.startDate).toLocaleDateString('es-AR')}
+          </p>
+          <p className="text-blue-800">
             Vence: {new Date(user.subscription.expiresAt).toLocaleDateString('es-AR')}
           </p>
         </div>
@@ -138,9 +173,9 @@ function ClassesPage() {
 
       {classes.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-8 text-center">
-          <h3 className="text-xl font-semibold mb-2">No tienes clases asignadas</h3>
+          <h3 className="text-xl font-semibold mb-2">No tienes clases programadas</h3>
           <p className="text-gray-600 mb-4">
-            Tu profesor asignará clases próximamente según tu suscripción
+            Próximamente se asignarán clases para tus horarios seleccionados:
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             {user.subscription.selectedSchedules?.map((schedule, i) => (
