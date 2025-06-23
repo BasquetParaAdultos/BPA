@@ -1,22 +1,16 @@
 import { useEffect, useState } from 'react';
 import axios from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom'; // Asegúrate de importar Link
+import { Link } from 'react-router-dom';
 
 function ClassesPage() {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  // Función mejorada para verificar validez de la suscripción
-  const isSubscriptionValid = () => {
-    if (!user?.subscription?.active) return false;
-    
-    const now = new Date();
-    const startDate = new Date(user.subscription.startDate);
-    const expiresAt = new Date(user.subscription.expiresAt);
-    
-    return startDate <= now && now <= expiresAt;
+  // Función simplificada para verificar suscripción activa
+  const isSubscriptionActive = () => {
+    return user?.subscription?.active;
   };
 
   useEffect(() => {
@@ -24,8 +18,8 @@ function ClassesPage() {
       try {
         setLoading(true);
         
-        // Verificación completa de suscripción
-        if (!user || !isSubscriptionValid()) {
+        // Verificar si hay usuario y suscripción activa
+        if (!user || !isSubscriptionActive()) {
           setClasses([]);
           setLoading(false);
           return;
@@ -33,12 +27,17 @@ function ClassesPage() {
 
         const res = await axios.get('/classes');
         
-        // Filtrado adicional en frontend como medida de seguridad
+        // Filtrado por horarios seleccionados
         const filteredClasses = res.data.filter(cls => 
           user.subscription.selectedSchedules.includes(cls.schedule)
         );
         
-        setClasses(filteredClasses);
+        // Ordenar por fecha (más reciente primero)
+        const sortedClasses = [...filteredClasses].sort((a, b) => 
+          new Date(b.date) - new Date(a.date)
+        );
+        
+        setClasses(sortedClasses);
       } catch (error) {
         console.error("Error:", error);
         setClasses([]);
@@ -94,8 +93,8 @@ function ClassesPage() {
     );
   }
 
-  // Verificación mejorada de suscripción
-  if (!isSubscriptionValid()) {
+  // Verificación de suscripción activa
+  if (!isSubscriptionActive()) {
     const now = new Date();
     const startDate = user?.subscription?.startDate ? new Date(user.subscription.startDate) : null;
     const expiresAt = user?.subscription?.expiresAt ? new Date(user.subscription.expiresAt) : null;
@@ -104,7 +103,7 @@ function ClassesPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-white p-8 rounded-xl shadow-lg max-w-md text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">
-            {user?.subscription?.active
+            {user?.subscription
               ? (expiresAt && expiresAt < now 
                   ? "Tu suscripción ha expirado" 
                   : startDate && startDate > now
@@ -115,7 +114,7 @@ function ClassesPage() {
           
           <div className="mb-6">
             <p className="text-gray-600 mb-3">
-              {user?.subscription?.active
+              {user?.subscription
                 ? (expiresAt && expiresAt < now
                     ? "Renueva tu suscripción para seguir accediendo a las clases."
                     : startDate && startDate > now
@@ -148,6 +147,10 @@ function ClassesPage() {
     );
   }
 
+  // Separar clases pasadas y futuras
+  const pastClasses = classes.filter(cls => new Date(cls.date) <= new Date());
+  const futureClasses = classes.filter(cls => new Date(cls.date) > new Date());
+
   return (
     <div className="max-w-6xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center">Tus Clases Programadas</h1>
@@ -166,8 +169,8 @@ function ClassesPage() {
         </div>
         
         <div className="flex gap-2">
-          <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Asistiré</span>
-          <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">No asistiré</span>
+          <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Asistí</span>
+          <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">No asistí</span>
         </div>
       </div>
 
@@ -186,52 +189,87 @@ function ClassesPage() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {classes.map(cls => {
-            const userAttendance = cls.attendees?.find(a => a.user?._id === user.id);
-            const isFutureClass = new Date(cls.date) > new Date();
-
-            return (
-              <div key={cls._id} className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
-                <div className="mb-4">
-                  <h3 className="font-semibold text-lg mb-1">
-                    {formatDate(cls.date)}
-                  </h3>
-                  <p className="text-gray-600 font-medium">{cls.schedule}</p>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleAttendance(cls._id, true)}
-                    disabled={isFutureClass}
-                    className={`flex-1 py-2 rounded-lg transition-all ${
-                      userAttendance?.attended === true
-                        ? 'bg-green-500 text-white shadow-inner'
-                        : isFutureClass
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-gray-100 hover:bg-green-100 border border-green-300 text-green-700'
-                    }`}
-                  >
-                    Asistiré
-                  </button>
+        <div className="space-y-8">
+          {/* Clases Futuras */}
+          {futureClasses.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4 text-gray-700">Próximas Clases</h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {futureClasses.map(cls => {
+                  const userAttendance = cls.attendees?.find(a => a.user?._id === user.id);
                   
-                  <button
-                    onClick={() => handleAttendance(cls._id, false)}
-                    disabled={isFutureClass}
-                    className={`flex-1 py-2 rounded-lg transition-all ${
-                      userAttendance?.attended === false
-                        ? 'bg-red-500 text-white shadow-inner'
-                        : isFutureClass
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-gray-100 hover:bg-red-100 border border-red-300 text-red-700'
-                    }`}
-                  >
-                    No asistiré
-                  </button>
-                </div>
+                  return (
+                    <div key={cls._id} className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-lg mb-1">
+                          {formatDate(cls.date)}
+                          <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            Próxima
+                          </span>
+                        </h3>
+                        <p className="text-gray-600 font-medium">{cls.schedule}</p>
+                      </div>
+                      <div className="text-center py-2">
+                        <span className="text-gray-500">
+                          Podrás registrar asistencia después de la clase
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          )}
+
+          {/* Clases Pasadas */}
+          {pastClasses.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4 text-gray-700">Clases Pasadas</h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {pastClasses.map(cls => {
+                  const userAttendance = cls.attendees?.find(a => a.user?._id === user.id);
+                  
+                  return (
+                    <div key={cls._id} className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
+                      <div className="mb-4">
+                        <h3 className="font-semibold text-lg mb-1">
+                          {formatDate(cls.date)}
+                          <span className="ml-2 text-sm bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                            Pasada
+                          </span>
+                        </h3>
+                        <p className="text-gray-600 font-medium">{cls.schedule}</p>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleAttendance(cls._id, true)}
+                          className={`flex-1 py-2 rounded-lg transition-all ${
+                            userAttendance?.attended === true
+                              ? 'bg-green-500 text-white shadow-inner'
+                              : 'bg-gray-100 hover:bg-green-100 border border-green-300 text-green-700'
+                          }`}
+                        >
+                          Asistí
+                        </button>
+                        
+                        <button
+                          onClick={() => handleAttendance(cls._id, false)}
+                          className={`flex-1 py-2 rounded-lg transition-all ${
+                            userAttendance?.attended === false
+                              ? 'bg-red-500 text-white shadow-inner'
+                              : 'bg-gray-100 hover:bg-red-100 border border-red-300 text-red-700'
+                          }`}
+                        >
+                          No asistí
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

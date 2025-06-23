@@ -6,30 +6,27 @@ import { horariosbpa } from "../config/schedules.js";
 export const getClasses = async (req, res) => {
   try {
     const { page = 1, limit = 12 } = req.query;
-    const now = new Date();
 
     // Lógica para USUARIOS NORMALES
     if (!req.user.isAdmin) {
       const user = await User.findById(req.user.id);
       
-      // Validar suscripción completa (activa, dentro de fechas válidas)
+      // Validar que la suscripción esté activa y tenga fechas definidas
       if (!user?.subscription?.active || 
           !user.subscription.startDate ||
-          !user.subscription.expiresAt ||
-          new Date(user.subscription.startDate) > now ||
-          new Date(user.subscription.expiresAt) < now) {
+          !user.subscription.expiresAt) {
         return res.status(403).json([]);
       }
 
-      // Filtro preciso por horarios y fechas válidas
+      // Filtro por horarios y rango completo de la suscripción
       const classes = await Class.find({
         schedule: { $in: user.subscription.selectedSchedules },
         date: { 
-          $gte: new Date(Math.max(now, new Date(user.subscription.startDate))),
+          $gte: new Date(user.subscription.startDate),
           $lte: new Date(user.subscription.expiresAt)
         }
       })
-      .sort({ date: 1 })
+      .sort({ date: 1 })  // Ordenar por fecha ascendente
       .populate('attendees.user', 'username email');
 
       return res.status(200).json(classes);
