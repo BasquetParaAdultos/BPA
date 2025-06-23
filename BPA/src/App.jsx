@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TaskProvider } from './context/TaskContext'
@@ -20,43 +19,47 @@ import ActiveSubscriptionsTable from './components/ActiveSubscriptionsTable';
 import ProtectedRoute from './ProtectedRoute'
 import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
 
-
-
 function App() {
-
   return (
     <AuthProvider>
       <TaskProvider>
         <BrowserRouter basename='/'>
+          {/* Contenedor principal con ancho mínimo */}
+          <div className="flex flex-col min-h-screen min-w-[280px] overflow-x-hidden">
             <Navbar />
-            <main className='container mx-auto px-10'>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
+            
+            {/* Contenedor de contenido con padding responsive mejorado */}
+            <main className='container mx-auto flex-grow w-full max-w-screen-2xl 
+                             px-[3vw] min-[340px]:px-[4vw] min-[400px]:px-[5vw] min-[450px]:px-6 sm:px-8 md:px-10'>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-              {/* Rutas protegidas para usuarios normales */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/tasks" element={<TaskPage />} />
-                <Route path="/add-task" element={<TaskFormPage />} />
-                <Route path="/tasks/:id" element={<TaskFormPage />} />
-                <Route path="/profile" element={<ProfilePage />} /> {/* Perfil propio */}
-                <Route path="/classes" element={<ClassesPage />} />
-                <Route path="/payment/success" element={<PaymentStatus />} />
-                <Route path="/payment/failure" element={<PaymentStatus />} />
-                <Route path="/payment/pending" element={<PaymentStatus />} />
-              </Route>
+                {/* Rutas protegidas para usuarios normales */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/tasks" element={<TaskPage />} />
+                  <Route path="/add-task" element={<TaskFormPage />} />
+                  <Route path="/tasks/:id" element={<TaskFormPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/classes" element={<ClassesPage />} />
+                  <Route path="/payment/success" element={<PaymentStatus />} />
+                  <Route path="/payment/failure" element={<PaymentStatus />} />
+                  <Route path="/payment/pending" element={<PaymentStatus />} />
+                </Route>
 
-              {/* Rutas protegidas para administradores */}
-              <Route element={<ProtectedAdminRoute />}>
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/admin/classes" element={<AdminClassesPage />} />
-                <Route path="/admin/active-subscriptions" element={<ActiveSubscriptionsTable />} />
-                <Route path="/admin/user/:userId" element={<ProfilePage />} />
-              </Route>
-            </Routes>
-          </main>
-          <Footer/>
+                {/* Rutas protegidas para administradores */}
+                <Route element={<ProtectedAdminRoute />}>
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin/classes" element={<AdminClassesPage />} />
+                  <Route path="/admin/active-subscriptions" element={<ActiveSubscriptionsTable />} />
+                  <Route path="/admin/user/:userId" element={<ProfilePage />} />
+                </Route>
+              </Routes>
+            </main>
+            
+            <Footer/>
+          </div>
         </BrowserRouter>
       </TaskProvider>
     </AuthProvider>

@@ -21,22 +21,23 @@ const HealthDataView = ({ user }) => {
   // Función para mostrar campos condicionales
   const renderConditionalField = (condition, label, value) => {
     return condition && value ? (
-      <p className="text-gray-600">
-        <span className="font-semibold">{label}:</span> {value}
-      </p>
+      <div className="mb-3">
+        <p className="text-gray-600">
+          <span className="font-semibold">{label}:</span> {value}
+        </p>
+      </div>
     ) : null;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Sección Datos Generales */}
       <div className="border-t pt-6">
         <h2 className="text-xl font-bold mb-4">Datos Generales</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
           {[
             { label: 'Teléfono', value: user?.phone },
             { label: 'Nombre completo', value: user?.full_name },
-            { label: 'Descripción', value: user?.description },
             { label: 'Teléfono alternativo 1', value: user?.alternate_phone1 },
             { label: 'Teléfono alternativo 2', value: user?.alternate_phone2 },
             { label: 'DNI', value: user?.dni },
@@ -51,74 +52,114 @@ const HealthDataView = ({ user }) => {
             { label: 'Obra Social', value: user?.health_insurance },
             { label: 'Grupo Sanguíneo', value: user?.blood_type }
           ].map((field, index) => (
-            <div key={index}>
+            <div key={index} className="mb-2">
               <p className="text-gray-600">
                 <span className="font-semibold">{field.label}:</span> 
-                {field.value || ' No especificado'}
+                {field.value ? ` ${field.value}` : ' No especificado'}
               </p>
             </div>
           ))}
+          
+          {/* Descripción en ancho completo */}
+          {user?.description && (
+            <div className="sm:col-span-2 lg:col-span-3">
+              <p className="text-gray-600">
+                <span className="font-semibold">Descripción:</span> {user.description}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Sección Antecedentes de Salud */}
       <div className="border-t pt-6">
         <h2 className="text-xl font-bold mb-4">Antecedentes de Salud</h2>
-        <div className="space-y-4">
-          <p className="text-gray-600">
-            <span className="font-semibold">Enfermedades crónicas:</span> {formatYesNo(user?.chronic_diseases)}
-          </p>
-          
-          {renderConditionalField(
-            user?.chronic_diseases, 
-            'Detalles enfermedades', 
-            user?.diseases_details
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+          {/* Columna 1 */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Enfermedades crónicas:</span> {formatYesNo(user?.chronic_diseases)}
+              </p>
+            </div>
+            
+            {renderConditionalField(
+              user?.chronic_diseases, 
+              'Detalles enfermedades', 
+              user?.diseases_details
+            )}
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Atención médica regular:</span> {formatYesNo(user?.medical_care)}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Atención médica regular:</span> {formatYesNo(user?.medical_care)}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Medicación actual:</span> {user?.medication || 'Ninguna'}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Medicación actual:</span> {user?.medication || 'Ninguna'}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Vacunación completa:</span> {formatYesNo(user?.vaccination_complete)}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Vacunación completa:</span> {formatYesNo(user?.vaccination_complete)}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Alergias:</span> {user?.allergies || 'Ninguna'}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Alergias:</span> {user?.allergies || 'Ninguna'}
+              </p>
+            </div>
+          </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Enfermedades oculares:</span> {user?.eye_diseases || 'Ninguna'}
-          </p>
+          {/* Columna 2 */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Enfermedades oculares:</span> {user?.eye_diseases || 'Ninguna'}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Enfermedades cardiovasculares:</span> {user?.cardiovascular_diseases || 'Ninguna'}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Enfermedades cardiovasculares:</span> {user?.cardiovascular_diseases || 'Ninguna'}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Enfermedades neurológicas:</span> {user?.neurological_diseases || 'Ninguna'}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Enfermedades neurológicas:</span> {user?.neurological_diseases || 'Ninguna'}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Enfermedades auditivas:</span> {user?.hearing_diseases || 'Ninguna'}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Enfermedades auditivas:</span> {user?.hearing_diseases || 'Ninguna'}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Diabetes:</span> {formatYesNo(user?.diabetes)}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Diabetes:</span> {formatYesNo(user?.diabetes)}
+              </p>
+            </div>
 
-          <p className="text-gray-600">
-            <span className="font-semibold">Discapacidad:</span> {formatYesNo(user?.disability)}
-          </p>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold">Discapacidad:</span> {formatYesNo(user?.disability)}
+              </p>
+            </div>
+          </div>
 
-          {renderConditionalField(
-            true,
-            'Información adicional', 
-            user?.additional_info
+          {/* Información adicional en ancho completo */}
+          {user?.additional_info && (
+            <div className="md:col-span-2">
+              <p className="text-gray-600">
+                <span className="font-semibold">Información adicional:</span> {user.additional_info}
+              </p>
+            </div>
           )}
         </div>
       </div>
