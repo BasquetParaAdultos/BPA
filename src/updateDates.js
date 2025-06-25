@@ -1,68 +1,82 @@
 import mongoose from 'mongoose';
-import { User } from './models/user.model.js'; // Ajusta la ruta según tu estructura
+import { User } from './models/user.model.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Función para conectar a la base de datos
+// Función para conectar a MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ Conectado a MongoDB');
   } catch (error) {
-    console.error('⛔ Error de conexión a MongoDB:', error.message);
+    console.error('⛔ Error de conexión:', error.message);
     process.exit(1);
   }
 };
 
-// Función principal para actualizar fechas
-const updateDates = async () => {
+// Función principal
+const migrateDates = async () => {
   await connectDB();
   
+  // Verificar si ya se ejecutó
+  const MIGRATION_KEY = 'date_migration_v1';
+  const systemUser = await User.findOne({ username: 'system' });
+  
+  if (systemUser?.migrations?.includes(MIGRATION_KEY)) {
+    console.log('⚠️ Migración ya completada. Saliendo.');
+    return;
+  }
+
   try {
-    const users = await User.find({});
-    let updatedCount = 0;
+    const users = await User.find({
+      $or: [
+        { 'subscription.startDate': { $exists: true } },
+        { 'subscription.expiresAt': { $exists: true } },
+        { 'birth_date': { $exists: true } }
+      ]
+    });
+    
+    console.log(`🔁 Migrando ${users.length} usuarios...`);
     
     for (const user of users) {
-      let needsUpdate = false;
-      const subscription = user.subscription;
+      // Solo modifica si es necesario
+      const update = {};
       
-      // Actualizar startDate si existe
-      if (subscription.startDate) {
-        // Convertimos a string y luego a Date para forzar el setter
-        subscription.startDate = new Date(subscription.startDate.toString());
-        needsUpdate = true;
+      if (user.subscription.startDate) {
+        update['subscription.startDate'] = new Date(user.subscription.startDate);
       }
       
-      // Actualizar expiresAt si existe
-      if (subscription.expiresAt) {
-        subscription.expiresAt = new Date(subscription.expiresAt.toString());
-        needsUpdate = true;
+      if (user.subscription.expiresAt) {
+        update['subscription.expiresAt'] = new Date(user.subscription.expiresAt);
       }
       
-      // Actualizar birth_date si existe
       if (user.birth_date) {
-        user.birth_date = new Date(user.birth_date.toString());
-        needsUpdate = true;
+        update['birth_date'] = new Date(user.birth_date);
       }
       
-      // Guardar solo si hubo cambios
-      if (needsUpdate) {
-        await user.save();
-        updatedCount++;
-        console.log(`Usuario ${user._id} actualizado`);
+      if (Object.keys(update).length > 0) {
+        await User.updateOne({ _id: user._id }, { $set: update });
       }
     }
     
-    console.log(`✅ ${updatedCount} usuarios actualizados`);
-    process.exit(0);
+    // Marcar como completado
+    await User.updateOne(
+      { username: 'system' },
+      { 
+        $setOnInsert: { username: 'system', role: 'system' },
+        $addToSet: { migrations: MIGRATION_KEY } 
+      },
+      { upsert: true }
+    );
+    
+    console.log('✅ Migración completada exitosamente');
   } catch (error) {
-    console.error('⛔ Error durante la actualización:', error);
+    console.error('⛔ Error en migración:', error);
     process.exit(1);
+  } finally {
+    mongoose.disconnect();
   }
 };
 
-updateDates();
+migrateDates();
