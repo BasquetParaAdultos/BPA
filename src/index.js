@@ -2,6 +2,11 @@ import app from './app.js'
 import { connectDB } from './db.js'
 import dotenv from 'dotenv';
 
+
+// Configurar zona horaria global para Argentina
+process.env.TZ = 'America/Argentina/Buenos_Aires';
+console.log(`🕒 Zona horaria configurada: ${process.env.TZ}`);
+
 dotenv.config();
 
 connectDB()

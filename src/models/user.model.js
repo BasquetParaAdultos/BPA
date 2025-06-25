@@ -47,7 +47,13 @@ const userSchema = new mongoose.Schema({
     dni: { type: String, default: '' },
     locality: { type: String, default: '' },
     nationality: { type: String, default: '' },
-    birth_date: { type: Date, default: null },
+    birth_date: { 
+        type: Date,
+        default: null,
+        set: function(date) {
+            return date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)) : date;
+        }
+    },
     sex: { type: String, enum: ['masculino', 'femenino', 'otro', ''], default: '' },
     address: { type: String, default: '' },
     health_insurance: { type: String, default: '' },
@@ -74,14 +80,12 @@ const userSchema = new mongoose.Schema({
             type: Boolean,
             default: false
         },
-        // Nuevo campo para cantidad de clases permitidas
         classesAllowed: {
             type: Number,
             default: 0,
             min: 0,
             max: 4
         },
-        // Movemos selectedSchedules aquí y actualizamos enum
         selectedSchedules: {
             type: [{
                 type: String,
@@ -91,12 +95,17 @@ const userSchema = new mongoose.Schema({
         },
         startDate: {
             type: Date,
-            default: null
+            default: null,
+            set: function(date) {
+                return date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)) : date;
+            }
         },
-        // Renombramos expiresAt por consistencia
         expiresAt: {
             type: Date,
             default: null,
+            set: function(date) {
+                return date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)) : date;
+            },
             validate: {
                 validator: function (v) {
                     return v === null || !isNaN(new Date(v).getTime());
@@ -107,7 +116,12 @@ const userSchema = new mongoose.Schema({
         lastPayment: {
             type: {
                 amount: Number,
-                date: Date,
+                date: {
+                    type: Date,
+                    set: function(date) {
+                        return date ? new Date(date.getTime() - (date.getTimezoneOffset() * 60000)) : date;
+                    }
+                },
                 paymentId: String
             },
             default: null
@@ -116,6 +130,7 @@ const userSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
 
 
 // Índices para optimizar consultas

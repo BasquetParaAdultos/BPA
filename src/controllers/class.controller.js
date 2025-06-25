@@ -7,33 +7,46 @@ export const getClasses = async (req, res) => {
   try {
     const { page = 1, limit = 12 } = req.query;
 
+    // Función para ajustar zona horaria (UTC-3 para Argentina)
+    const adjustToArgentinaTZ = (date) => {
+      if (!date) return null;
+      const d = new Date(date);
+      d.setHours(d.getHours() - 3);
+      return d;
+    };
+
     // Lógica para USUARIOS NORMALES
     if (!req.user.isAdmin) {
       const user = await User.findById(req.user.id);
       
-      // Validar que la suscripción esté activa y tenga fechas definidas
+      // Validar suscripción
       if (!user?.subscription?.active || 
           !user.subscription.startDate ||
           !user.subscription.expiresAt) {
         return res.status(403).json([]);
       }
 
-      // Filtro por horarios y rango completo de la suscripción
+      // Ajustar fechas de suscripción a zona horaria Argentina
+      const startDate = adjustToArgentinaTZ(user.subscription.startDate);
+      const expiresAt = adjustToArgentinaTZ(user.subscription.expiresAt);
+
+      // Filtro con fechas ajustadas
       const classes = await Class.find({
         schedule: { $in: user.subscription.selectedSchedules },
         date: { 
-          $gte: new Date(user.subscription.startDate),
-          $lte: new Date(user.subscription.expiresAt)
+          $gte: startDate,
+          $lte: expiresAt
         }
       })
-      .sort({ date: 1 })  // Ordenar por fecha ascendente
+      .sort({ date: -1 })  // Orden descendente (más recientes primero)
       .populate('attendees.user', 'username email');
 
       return res.status(200).json(classes);
     }
 
-    // Lógica para ADMINISTRADORES (manteniendo tu implementación original)
+    // Lógica para ADMINISTRADORES
     const currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() - 3); // Ajustar a UTC-3
       
     // 1. Calcular semana actual (DOMINGO a SÁBADO)
     const getCurrentWeekRange = () => {
@@ -58,7 +71,7 @@ export const getClasses = async (req, res) => {
     targetWeekEnd.setDate(targetWeekStart.getDate() + 6);
     targetWeekEnd.setHours(23, 59, 59, 999);
 
-    // 3. Obtener SOLO clases pasadas o de la semana en curso
+    // 3. Obtener clases (ajustar fechas)
     const classes = await Class.find({
       date: { 
         $gte: targetWeekStart,
@@ -66,11 +79,17 @@ export const getClasses = async (req, res) => {
       }
     }).populate('attendees.user', 'username email');
 
-    // 4. Calcular total de páginas REALES (solo hasta semana actual)
+    // 4. Calcular total de páginas
     const earliestClass = await Class.findOne().sort({ date: 1 });
+    
+    // Ajustar fecha de la clase más antigua
+    const adjustedEarliestDate = earliestClass 
+      ? adjustToArgentinaTZ(earliestClass.date)
+      : null;
+    
     const totalWeeks = earliestClass 
       ? Math.ceil(
-          (currentWeekStart - earliestClass.date) / 
+          (currentWeekStart - adjustedEarliestDate) / 
           (7 * 24 * 60 * 60 * 1000)
         ) + 1
       : 1;
@@ -83,12 +102,19 @@ export const getClasses = async (req, res) => {
       scheduleOrder[a.schedule] - scheduleOrder[b.schedule]
     );
 
+    // Formatear fechas de semana para visualización
+    const formatWeekDate = (date) => {
+      return date.toLocaleDateString('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires'
+      });
+    };
+
     return res.status(200).json({
       classes: sortedClasses,
       totalPages: Math.max(1, totalWeeks),
       currentWeek: {
-        start: targetWeekStart.toLocaleDateString('es-AR'),
-        end: targetWeekEnd.toLocaleDateString('es-AR')
+        start: formatWeekDate(targetWeekStart),
+        end: formatWeekDate(targetWeekEnd)
       }
     });
 

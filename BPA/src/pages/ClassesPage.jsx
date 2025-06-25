@@ -68,15 +68,32 @@ function ClassesPage() {
     }
   };
 
-  // Formatear fechas
+  // Formatear fechas con ajuste de zona horaria
   const formatDate = (dateString) => {
     try {
+      // Ajustar a zona horaria de Argentina (UTC-3)
       const date = new Date(dateString);
+      date.setHours(date.getHours() - 3);
+      
       return date.toLocaleDateString('es-AR', {
         weekday: 'long',
         day: 'numeric',
         month: 'long'
       });
+    } catch {
+      return 'Fecha inválida';
+    }
+  };
+
+  // Formatear fecha de suscripción
+  const formatSubscriptionDate = (dateString) => {
+    try {
+      if (!dateString) return 'Fecha inválida';
+      
+      const date = new Date(dateString);
+      date.setHours(date.getHours() - 3); // Ajuste UTC-3
+      
+      return date.toLocaleDateString('es-AR');
     } catch {
       return 'Fecha inválida';
     }
@@ -118,20 +135,20 @@ function ClassesPage() {
                 ? (expiresAt && expiresAt < now
                     ? "Renueva tu suscripción para seguir accediendo a las clases."
                     : startDate && startDate > now
-                      ? `Tu suscripción comienza el ${startDate.toLocaleDateString('es-AR')}`
+                      ? `Tu suscripción comienza el ${formatSubscriptionDate(user.subscription.startDate)}`
                       : "Por favor contacta al soporte para resolver este problema.")
                 : "Necesitas una suscripción activa para ver las clases."}
             </p>
             
             {startDate && (
               <p className="text-gray-600">
-                Inicio: {startDate.toLocaleDateString('es-AR')}
+                Inicio: {formatSubscriptionDate(user.subscription.startDate)}
               </p>
             )}
             
             {expiresAt && (
               <p className="text-gray-600">
-                Expira: {expiresAt.toLocaleDateString('es-AR')}
+                Expira: {formatSubscriptionDate(user.subscription.expiresAt)}
               </p>
             )}
           </div>
@@ -161,10 +178,10 @@ function ClassesPage() {
             Clases disponibles: <span className="font-bold">{user.subscription.classesAllowed}</span>
           </p>
           <p className="text-blue-800">
-            Inicio: {new Date(user.subscription.startDate).toLocaleDateString('es-AR')}
+            Inicio: {formatSubscriptionDate(user.subscription.startDate)}
           </p>
           <p className="text-blue-800">
-            Vence: {new Date(user.subscription.expiresAt).toLocaleDateString('es-AR')}
+            Vence: {formatSubscriptionDate(user.subscription.expiresAt)}
           </p>
         </div>
         
