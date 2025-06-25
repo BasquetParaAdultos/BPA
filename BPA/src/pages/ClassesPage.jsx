@@ -86,18 +86,23 @@ function ClassesPage() {
   };
 
   // Formatear fecha de suscripción
- const formatSubscriptionDate = (dateString) => {
-  if (!dateString) return 'Fecha inválida';
-  const date = new Date(dateString);
-  
-  if (isNaN(date)) return 'Fecha inválida';
-  
-  return date.toLocaleDateString('es-AR', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
-  });
-};
+  const formatSubscriptionDate = (dateString) => {
+    if (!dateString) return 'Fecha inválida';
+    
+    // Intenta convertir a timestamp numérico primero
+    const timestamp = Date.parse(dateString);
+    if (isNaN(timestamp)) return 'Fecha inválida';
+    
+    // Usa el timestamp para crear la fecha (evita problemas de zona horaria)
+    const date = new Date(timestamp);
+    
+    return date.toLocaleDateString('es-AR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'America/Argentina/Buenos_Aires'
+    });
+  };
 
   if (loading) {
     return (
