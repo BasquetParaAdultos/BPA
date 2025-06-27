@@ -12,10 +12,10 @@ function TaskPage() {
 
   // Opciones actualizadas con precios numéricos y formato de moneda
   const options = [
-    { id: 1, label: '1 clase', description: 'Clase individual', price: 20000 },
-    { id: 2, label: '2 clases', description: 'Pack de dos clases', price: 28000 },
-    { id: 3, label: '3 clases', description: 'Entrenamiento regular', price: 35000 },
-    { id: 4, label: '4 clases', description: 'Entrenamiento intensivo', price: 40000 },
+    { id: 1, label: '1 clase', description: 'Clase individual', price: 24000 },
+    { id: 2, label: '2 clases', description: 'Pack de dos clases', price: 32000 },
+    { id: 3, label: '3 clases', description: 'Entrenamiento regular', price: 40000 },
+    { id: 4, label: '4 clases', description: 'Entrenamiento intensivo', price: 46000 },
   ];
 
   const selectedOption = options.find(opt => opt.id === activeOption);
