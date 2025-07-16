@@ -38,10 +38,10 @@ const ActiveSubscriptionsTable = () => {
 
     const copyColumnData = (columnKey) => {
         if (filteredUsers.length === 0) return;
-        
+
         let columnData = [];
-        
-        switch(columnKey) {
+
+        switch (columnKey) {
             case 'username':
                 columnData = filteredUsers.map(user => user.username || 'Incompleto');
                 break;
@@ -52,17 +52,17 @@ const ActiveSubscriptionsTable = () => {
                 columnData = filteredUsers.map(user => user.dni || 'Incompleto');
                 break;
             case 'birth_date':
-                columnData = filteredUsers.map(user => 
-                    user.birth_date ? 
-                    format(new Date(user.birth_date), 'dd/MM/yyyy', { locale: es }) : 
-                    'Incompleto'
+                columnData = filteredUsers.map(user =>
+                    user.birth_date ?
+                        format(new Date(user.birth_date), 'dd/MM/yyyy', { locale: es }) :
+                        'Incompleto'
                 );
                 break;
             case 'expiresAt':
-                columnData = filteredUsers.map(user => 
-                    user.subscription?.expiresAt ? 
-                    format(new Date(user.subscription.expiresAt), 'dd/MM/yyyy', { locale: es }) : 
-                    'Incompleto'
+                columnData = filteredUsers.map(user =>
+                    user.subscription?.expiresAt ?
+                        format(new Date(user.subscription.expiresAt), 'dd/MM/yyyy', { locale: es }) :
+                        'Incompleto'
                 );
                 break;
             default:
@@ -89,13 +89,12 @@ const ActiveSubscriptionsTable = () => {
     // Componente para los headers de la tabla
     const ColumnHeader = ({ title, columnKey }) => (
         <th className="px-6 py-3 text-left text-sm font-semibold uppercase">
-            <button 
+            <button
                 onClick={() => copyColumnData(columnKey)}
-                className={`flex items-center transition-colors ${
-                    filteredUsers.length > 0 
-                        ? 'hover:text-blue-300 cursor-pointer' 
+                className={`flex items-center transition-colors ${filteredUsers.length > 0
+                        ? 'hover:text-blue-300 cursor-pointer'
                         : 'text-gray-400 cursor-default'
-                }`}
+                    }`}
                 title={`Copiar todos los ${title}`}
                 disabled={filteredUsers.length === 0}
             >
@@ -142,19 +141,17 @@ const ActiveSubscriptionsTable = () => {
                     <table className="min-w-full bg-white">
                         <thead className="bg-gray-800 text-white">
                             <tr>
-                                <ColumnHeader title="Usuario" columnKey="username" />
+
                                 <ColumnHeader title="Nombre Completo" columnKey="full_name" />
                                 <ColumnHeader title="DNI" columnKey="dni" />
                                 <ColumnHeader title="Fecha Nacimiento" columnKey="birth_date" />
-                                <ColumnHeader title="Expiración Sub." columnKey="expiresAt" />
+
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {filteredUsers.map(user => (
                                 <tr key={user._id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {user.username || 'Incompleto'}
-                                    </td>
+
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {user.full_name || 'Incompleto'}
                                     </td>
@@ -164,11 +161,7 @@ const ActiveSubscriptionsTable = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {formatDate(user.birth_date)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {user.subscription?.expiresAt ?
-                                            formatDate(user.subscription.expiresAt) :
-                                            'Incompleto'}
-                                    </td>
+
                                 </tr>
                             ))}
                         </tbody>
