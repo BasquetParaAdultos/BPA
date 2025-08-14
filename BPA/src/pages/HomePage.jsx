@@ -144,7 +144,7 @@ function HomePage() {
                                     <div className="p-6 text-center">
                                         <h3 className="text-2xl font-semibold text-gray-900 mb-3">Clases Mixtas</h3>
                                         <p className="text-gray-600 leading-relaxed">
-                                            Todas las clases son mixtas a exepción de 1 horario semanal femenino.
+                                            Todas nuestras clases son mixtas, veni a divertirte.
                                         </p>
                                     </div>
                                 </div>
@@ -411,7 +411,7 @@ function HomePage() {
                                     </div>
                                     <div className="border-t border-gray-200 px-6 py-4">
                                         <h3 className="text-lg font-medium text-gray-900">Horarios:</h3>
-                                        <p className="mt-1 text-gray-600">Lunes 20 a 21 p. m. y 21 a 22hs</p>
+                                        <p className="mt-1 text-gray-600">Lunes 20 a 21 p. m. y 21 a 22 p. m.</p>
                                         <p className="mt-1 text-gray-600">Martes 21 a 22 p. m. y 22 a 23 p. m.</p>
                                         <p className="mt-1 text-gray-600">Viernes 21 a 22 p. m.(Clase Avanzada)</p>
                                         <p className="mt-1 text-gray-600">Sabado 9hs a 10:30hs y 10:30hs a 12hs</p>
@@ -447,7 +447,7 @@ function HomePage() {
                                     </div>
                                     <div className="border-t border-gray-200 px-6 py-4">  
                                         <h3 className="text-lg font-medium text-gray-900">Horarios:</h3>
-                                        <p className="mt-1 text-gray-600">Jueves 19 a 20 p. m.(Femenino) y 20hs a 21hs(Mixto)</p>
+                                        <p className="mt-1 text-gray-600">Jueves 19 a 20 p. m.  y 20 a 21 p. m.</p>
                                     </div>
                                 </div>
                             </div>
