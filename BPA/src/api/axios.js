@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Obtiene la URL base desde las variables de entorno
-const baseURL = import.meta.env.VITE_API_URL || "https://bpa-ftmu.onrender.com";
+const baseURL = import.meta.env.VITE_API_URL 
 
 const instance = axios.create({
   baseURL: `${baseURL}/api`,

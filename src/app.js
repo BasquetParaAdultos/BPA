@@ -24,18 +24,20 @@ app.get('/health', (req, res) => {
 });
 
 /// Configuración de CORS mejorada
+const allowedOrigins = [
+  ...process.env.FRONTEND_URL.split(',').map(url => url.trim()),
+  'http://localhost:5173'
+];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log(`Solicitud recibida desde origen: ${origin}`);
-    const allowedOrigins = [
-      process.env.FRONTEND_URL, // URL explícita
-      'http://localhost:5173'
-    ];
-    
+    // Solo loguear en desarrollo
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Solicitud recibida desde origen: ${origin}`);
+    }
     // Permitir solicitudes sin origen (Postman, apps nativas)
     if (!origin) return callback(null, true);
-    
-    // Verificar contra la lista blanca
+
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -43,9 +45,11 @@ const corsOptions = {
     }
   },
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Content-Length', 'Pragma', 'X-Requested-With'],
+  allowedHeaders: [
+    'Content-Type', 'Authorization', 'Cache-Control', 'Content-Length',
+    'Pragma', 'X-Requested-With'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  // Eliminado exposedHeaders (no necesario)
 };
 
 app.use(cors(corsOptions));

@@ -13,7 +13,7 @@ const setAuthCookie = (res, token) => {
         secure: true,
         sameSite: 'none',
         maxAge: 1000 * 60 * 60 * 24 * 7,
-        domain: isProduction ? 'bpa-ftmu.onrender.com' : undefined,
+        domain: '.basquetparaadultos.com',
         path: '/'
     });
 };
